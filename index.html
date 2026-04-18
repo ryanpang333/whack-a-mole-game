@@ -718,6 +718,24 @@
     }
 
     #screen-server { overflow-y: auto; }
+
+    /* ── Pause ── */
+    #screen-game { position: relative; }
+    .pause-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.2);
+      color: #fff; border-radius: 10px; padding: 6px 14px;
+      font-size: 1.1rem; cursor: pointer; z-index: 5;
+    }
+    .pause-btn:hover { background: rgba(255,255,255,0.22); }
+    .pause-overlay {
+      display: none; position: absolute; inset: 0; border-radius: 18px;
+      background: rgba(0,0,0,0.72); flex-direction: column;
+      align-items: center; justify-content: center; gap: 20px; z-index: 10;
+    }
+    .pause-overlay.active { display: flex; }
+    .pause-overlay .title { font-size: 2.2rem; font-weight: 900; color: #fff; }
+
     #screen-arena  { padding: 0 !important; gap: 0 !important; }
     #screen-arena.active { display: block !important; position: fixed; inset: 0; z-index: 2; }
     #arena-canvas  { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
@@ -1335,6 +1353,7 @@
 
 <!-- ═══════════════════ GAME SCREEN ═══════════════════ -->
 <div class="screen" id="screen-game">
+  <button class="pause-btn" onclick="pauseGame()" id="pause-btn">⏸</button>
   <div class="hud">
     <span><label>Score</label><span id="score">0</span></span>
     <span id="opp-hud" style="display:none;"><label>Opponent</label><span id="opp-level-pip" class="opp-level-pip" style="display:none;"></span><span id="opp-avatar-hud" style="vertical-align:middle;"></span> <span id="opp-score">0</span></span>
@@ -1348,6 +1367,13 @@
   <div class="powerup-bar" id="powerup-bar"></div>
   <div class="grid" id="grid"></div>
   <button class="btn btn-back" style="margin-top:4px;" onclick="endGame(true)">Quit</button>
+
+  <!-- Pause overlay -->
+  <div class="pause-overlay" id="pause-overlay">
+    <div class="title">⏸ Paused</div>
+    <button class="btn btn-primary" style="width:200px;" onclick="resumeGame()">▶ Resume</button>
+    <button class="btn btn-back"   style="width:200px;" onclick="endGame(true)">Quit</button>
+  </div>
 </div>
 
 <!-- ═══════════════════ RESULT SCREEN ═══════════════════ -->
@@ -2768,6 +2794,7 @@
     opponentScore = 0;
     document.getElementById('opp-hud').style.display = '';
     document.getElementById('opp-score').textContent = 0;
+    document.getElementById('pause-btn').style.display = 'none'; // no pause in multiplayer
     updateOppHudAvatar();
     startGame(multiDifficulty);
   }
@@ -3173,7 +3200,7 @@
   /* ── Game state ── */
   let score = 0, misses = 0, timeLeft = 30, totalTime = 30;
   let currentDifficulty = 'normal';
-  let gameRunning = false;
+  let gameRunning = false, gamePaused = false;
   let spawnTimer = null, countdownTimer = null;
   let moleTimers = [];
   const NUM_HOLES = 9;
@@ -3201,7 +3228,9 @@
     const cfg = CONFIGS[difficulty];
     score = 0; misses = 0;
     timeLeft = cfg.duration; totalTime = cfg.duration;
-    gameRunning = true;
+    gameRunning = true; gamePaused = false;
+    document.getElementById('pause-overlay').classList.remove('active');
+    document.getElementById('pause-btn').style.display = '';
 
     // Apply queued power-ups
     bombShieldActive = !!queuedPowerups.bombShield;
@@ -3228,6 +3257,37 @@
   }
 
   function replayGame() { startGame(currentDifficulty); }
+
+  function pauseGame() {
+    if (!gameRunning || gamePaused) return;
+    gamePaused = true;
+    clearInterval(countdownTimer);
+    clearTimeout(spawnTimer);
+    moleTimers.forEach(t => clearTimeout(t));
+    // Hide all moles without counting misses
+    holes.forEach(h => {
+      h.classList.remove('up', 'whacked', 'bomb-hit');
+      h.querySelector('.mole').textContent = '🐹';
+      h.dataset.isBomb = 'false';
+    });
+    document.getElementById('pause-overlay').classList.add('active');
+    document.getElementById('pause-btn').style.display = 'none';
+  }
+
+  function resumeGame() {
+    if (!gamePaused) return;
+    gamePaused = false;
+    document.getElementById('pause-overlay').classList.remove('active');
+    document.getElementById('pause-btn').style.display = '';
+    // Restart countdown and mole spawning
+    countdownTimer = setInterval(() => {
+      timeLeft--;
+      document.getElementById('timer').textContent = timeLeft;
+      document.getElementById('timer-bar').style.width = (timeLeft / totalTime * 100) + '%';
+      if (timeLeft <= 0) endGame(false);
+    }, 1000);
+    scheduleMole();
+  }
 
   /* ── Mole spawning ── */
   function scheduleMole() {
@@ -3261,7 +3321,7 @@
 
   /* ── Whack! ── */
   function whack(hole) {
-    if (!gameRunning) return;
+    if (!gameRunning || gamePaused) return;
     if (!hole.classList.contains('up')) return;
     if (hole.classList.contains('whacked')) return;
 
@@ -3328,7 +3388,9 @@
   /* ── End game ── */
   function endGame(quit) {
     if (!gameRunning) return;
-    gameRunning = false;
+    gameRunning = false; gamePaused = false;
+    document.getElementById('pause-overlay').classList.remove('active');
+    document.getElementById('pause-btn').style.display = '';
     clearInterval(countdownTimer);
     clearTimeout(spawnTimer);
     moleTimers.forEach(t => clearTimeout(t));
