@@ -1399,6 +1399,10 @@
    */
   const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
 
+  /* ── Account namespace (needed before any localStorage reads) ── */
+  let activeUsername = localStorage.getItem('wam_active_user') || null;
+  function gk(k) { return activeUsername ? `wam_u_${activeUsername}_${k}` : `wam_${k}`; }
+
   /* ════════════════════════════════════════════════
      QUESTS
   ════════════════════════════════════════════════ */
@@ -1724,24 +1728,24 @@
 
   /* ── Badge definitions ── */
   const BADGES = [
-    { id: 'coin_100',       icon: '🪙', name: 'Getting Started',   desc: 'Earn 100 coins total',        avatar: '🪙' },
-    { id: 'coin_500',       icon: '💰', name: 'High Roller',        desc: 'Earn 500 coins total',        avatar: '💰' },
-    { id: 'coin_1000',      icon: '👑', name: 'Coin Master',        desc: 'Earn 1,000 coins total',      avatar: '👑' },
-    { id: 'coin_5000',      icon: '💎', name: 'Diamond Hoarder',    desc: 'Earn 5,000 coins total',      avatar: '💎' },
-    { id: 'pets_common',    icon: '🐭', name: 'Common Collector',   desc: 'Collect all 3 common pets',   avatar: '🐭' },
-    { id: 'pets_rare',      icon: '🦊', name: 'Rare Hunter',        desc: 'Collect all 3 rare pets',     avatar: '🦊' },
-    { id: 'pets_legendary', icon: '🐉', name: 'Legendary Tamer',    desc: 'Collect all 3 legendary pets',avatar: '🐉' },
-    { id: 'pets_all',       icon: '⭐', name: 'Pet Master',         desc: 'Collect all 9 pets',          avatar: '⭐' },
-    { id: 'level_5',        icon: '🎯', name: 'Rookie',        desc: 'Reach Level 5',   avatar: '🎯' },
-    { id: 'level_10',       icon: '🎖️', name: 'Challenger',     desc: 'Reach Level 10',  avatar: '🎖️' },
-    { id: 'level_25',       icon: '🏆', name: 'Champion',       desc: 'Reach Level 25',  avatar: '🏆' },
-    { id: 'level_50',       icon: '🔥', name: 'Expert',         desc: 'Reach Level 50',  avatar: '🔥' },
-    { id: 'level_75',       icon: '⚔️', name: 'Veteran',        desc: 'Reach Level 75',  avatar: '⚔️' },
-    { id: 'level_100',      icon: '💫', name: 'Elite',          desc: 'Reach Level 100', avatar: '💫' },
-    { id: 'level_150',      icon: '🌌', name: 'Grandmaster',    desc: 'Reach Level 150', avatar: '🌌' },
-    { id: 'level_200',      icon: '🌠', name: 'Mythic',         desc: 'Reach Level 200', avatar: '🌠' },
-    { id: 'level_250',      icon: '👾', name: 'Transcendent',   desc: 'Reach Level 250', avatar: '👾' },
-    { id: 'level_300',      icon: '🌀', name: 'Whack God',      desc: 'Reach Level 300',          avatar: '🌀' },
+    { id: 'coin_100',       icon: '🪙', name: 'Getting Started',   desc: 'Earn 100 coins total',         avatar: '🪙',  rarity: 'common' },
+    { id: 'coin_500',       icon: '💰', name: 'High Roller',        desc: 'Earn 500 coins total',         avatar: '💰',  rarity: 'common' },
+    { id: 'coin_1000',      icon: '👑', name: 'Coin Master',        desc: 'Earn 1,000 coins total',       avatar: '👑',  rarity: 'rare' },
+    { id: 'coin_5000',      icon: '💎', name: 'Diamond Hoarder',    desc: 'Earn 5,000 coins total',       avatar: '💎',  rarity: 'epic' },
+    { id: 'pets_common',    icon: '🐭', name: 'Common Collector',   desc: 'Collect all 3 common pets',    avatar: '🐭',  rarity: 'common' },
+    { id: 'pets_rare',      icon: '🦊', name: 'Rare Hunter',        desc: 'Collect all 3 rare pets',      avatar: '🦊',  rarity: 'rare' },
+    { id: 'pets_legendary', icon: '🐉', name: 'Legendary Tamer',    desc: 'Collect all 3 legendary pets', avatar: '🐉',  rarity: 'legendary' },
+    { id: 'pets_all',       icon: '⭐', name: 'Pet Master',         desc: 'Collect all 9 pets',           avatar: '⭐',  rarity: 'legendary' },
+    { id: 'level_5',        icon: '🎯', name: 'Rookie',        desc: 'Reach Level 5',   avatar: '🎯',  rarity: 'common' },
+    { id: 'level_10',       icon: '🎖️', name: 'Challenger',     desc: 'Reach Level 10',  avatar: '🎖️',  rarity: 'common' },
+    { id: 'level_25',       icon: '🏆', name: 'Champion',       desc: 'Reach Level 25',  avatar: '🏆',  rarity: 'rare' },
+    { id: 'level_50',       icon: '🔥', name: 'Expert',         desc: 'Reach Level 50',  avatar: '🔥',  rarity: 'rare' },
+    { id: 'level_75',       icon: '⚔️', name: 'Veteran',        desc: 'Reach Level 75',  avatar: '⚔️',  rarity: 'epic' },
+    { id: 'level_100',      icon: '💫', name: 'Elite',          desc: 'Reach Level 100', avatar: '💫',  rarity: 'epic' },
+    { id: 'level_150',      icon: '🌌', name: 'Grandmaster',    desc: 'Reach Level 150', avatar: '🌌',  rarity: 'epic' },
+    { id: 'level_200',      icon: '🌠', name: 'Mythic',         desc: 'Reach Level 200', avatar: '🌠',  rarity: 'legendary' },
+    { id: 'level_250',      icon: '👾', name: 'Transcendent',   desc: 'Reach Level 250', avatar: '👾',  rarity: 'legendary' },
+    { id: 'level_300',      icon: '🌀', name: 'Whack God',      desc: 'Reach Level 300', avatar: '🌀',  rarity: 'legendary' },
     { id: 'admin',          icon: '⚜️', name: 'Admin',          desc: 'Redeemed the admin code',   avatar: '⚜️',  rarity: 'admin' },
     // Games played
     { id: 'games_10',      icon: '🎮', name: 'Gamer',          desc: 'Play 10 games',             avatar: '🎮',  rarity: 'common' },
@@ -1808,10 +1812,8 @@
   }
 
   /* ── Account system ── */
-  // Each logged-in user gets their own namespaced storage keys.
-  // Guests still use the legacy wam_* keys so existing progress is preserved.
-  let activeUsername = localStorage.getItem('wam_active_user') || null;
-  function gk(k) { return activeUsername ? `wam_u_${activeUsername}_${k}` : `wam_${k}`; }
+  // activeUsername and gk() are declared near the top of the script so they
+  // are available for all localStorage reads that follow.
 
   let wamAccounts = (() => {
     try { return JSON.parse(localStorage.getItem('wam_accounts') || '[]'); }
@@ -1820,8 +1822,17 @@
   function saveAccounts() { localStorage.setItem('wam_accounts', JSON.stringify(wamAccounts)); }
 
   async function hashPassword(pwd) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    // crypto.subtle only works on HTTPS/localhost; fall back to a simple hash for file:// contexts
+    if (window.crypto && window.crypto.subtle) {
+      try {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+      } catch(e) { /* fall through to simple hash */ }
+    }
+    // DJB2 fallback — good enough for a local game
+    let h = 5381;
+    for (let i = 0; i < pwd.length; i++) h = Math.imul(h, 33) ^ pwd.charCodeAt(i);
+    return 'fb_' + (h >>> 0).toString(16).padStart(8,'0') + pwd.length.toString(16);
   }
 
   /* ── Persistent state ── */
@@ -1910,6 +1921,9 @@
     applySkin(activeSkin);
     ownedSwords = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_swords')) || '["wood"]'); } catch { return ['wood']; } })();
     activeSword = localStorage.getItem(gk('active_sword')) || 'wood';
+    ownedGuns = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_guns')) || '["pistol"]'); } catch { return ['pistol']; } })();
+    activeGun  = localStorage.getItem(gk('active_gun'))  || 'pistol';
+    activeWeaponType = localStorage.getItem(gk('weapon_type')) || 'sword';
     questProgress    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_prog')) || '{}'); } catch{ return {}; } })();
     claimedQuests    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_done')) || '[]'); } catch{ return []; } })();
     totalGamesPlayed = parseInt(localStorage.getItem(gk('games_played')) || '0');
@@ -1938,11 +1952,15 @@
     }
 
     err.textContent = '';
-    const h = await hashPassword(p);
-    wamAccounts.push({ u, h });
-    saveAccounts();
-    await doLogin(u);
-    closeAuthModal();
+    try {
+      const h = await hashPassword(p);
+      wamAccounts.push({ u, h });
+      saveAccounts();
+      await doLogin(u);
+      closeAuthModal();
+    } catch(e) {
+      err.textContent = 'Could not create account: ' + e.message;
+    }
   }
 
   async function attemptLogin() {
@@ -1956,8 +1974,12 @@
     if (h !== account.h) { err.textContent = 'Incorrect password.'; return; }
 
     err.textContent = '';
-    await doLogin(account.u); // use the stored casing
-    closeAuthModal();
+    try {
+      await doLogin(account.u); // use the stored casing
+      closeAuthModal();
+    } catch(e) {
+      err.textContent = 'Login error: ' + e.message;
+    }
   }
 
   async function doLogin(username) {
@@ -2103,8 +2125,8 @@
       googleUser = null;
       ownedSkins = ['default']; activeSkin = 'default';
       saveSkins(); applySkin('default');
-      ownedSwords = ['wood']; activeSword = 'wood';
-      saveSwords();
+      ownedSwords = ['wood']; activeSword = 'wood'; saveSwords();
+      ownedGuns = ['pistol']; activeGun = 'pistol'; activeWeaponType = 'sword'; saveGuns();
       questProgress = {}; claimedQuests = []; totalGamesPlayed = 0;
       storyProgress = 0;
       saveQuests(); saveStory();
@@ -2142,8 +2164,10 @@
       saveSkins();
       // Grant the exclusive Admin sword
       if (!ownedSwords.includes('admin')) ownedSwords.push('admin');
-      activeSword = 'admin';
-      saveSwords();
+      activeSword = 'admin'; saveSwords();
+      // Grant the exclusive Admin Gun
+      if (!ownedGuns.includes('admingun')) ownedGuns.push('admingun');
+      activeGun = 'admingun'; activeWeaponType = 'gun'; saveGuns();
       applySkin('glitch');
     } else {
       if (code.coins) {
@@ -2539,13 +2563,15 @@
     const list = document.getElementById('badges-list');
     list.innerHTML = '';
     BADGES.forEach(badge => {
-      const earned = earnedBadges.includes(badge.id);
-      const item   = document.createElement('div');
-      item.className = 'badge-item ' + (earned ? 'badge-earned' : 'badge-locked');
+      const earned  = earnedBadges.includes(badge.id);
+      const rarity  = badge.rarity || 'common';
+      const item    = document.createElement('div');
+      item.className = `badge-item ${earned ? 'badge-earned' : 'badge-locked'} rarity-${rarity}`;
+      const pip = `<span class="badge-rarity-pip pip-${rarity}">${rarity.toUpperCase()}</span>`;
       item.innerHTML = `
         <div class="badge-item-icon">${earned ? badge.icon : '🔒'}</div>
         <div class="badge-item-info">
-          <div class="badge-item-name">${earned ? badge.name : '???'}</div>
+          <div class="badge-item-name">${earned ? badge.name : '???'}${pip}</div>
           <div class="badge-item-desc">${badge.desc}</div>
         </div>
         ${earned ? '<span class="badge-earned-tag">EARNED</span>' : ''}`;
@@ -3761,10 +3787,16 @@
     let myHp = 100, oppHp = 100;
     let myKills = 0, oppKills = 0;
     const WIN_KILLS = 5;
-    const mySword = SWORDS[activeSword] || SWORDS.wood;
+    // Resolve active weapon — sword or gun
+    const isGun     = activeWeaponType === 'gun';
+    const myWeapon  = isGun ? (GUNS[activeGun] || GUNS.pistol) : (SWORDS[activeSword] || SWORDS.wood);
+    // Keep legacy alias so existing code still compiles
+    const mySword   = myWeapon;
     let swingCooldown = 0, invincible = 0;
     let isDead = false, respawnTimer = 0, gameOver = false;
     let posTimer = 0;
+    // Bullets array for gun mode
+    const bullets = []; // { mesh, vel, life }
 
     /* ── Opponent state + 3D model ── */
     const oppSpawn = new THREE.Vector3(0, 0, side === 'red' ? -14 : 14);
@@ -3825,7 +3857,7 @@
     const swingFlash  = document.getElementById('arena-swing-flash');
     const clickPrompt = document.getElementById('arena-clickprompt');
 
-    if (swordHud) swordHud.textContent = mySword.icon + ' ' + mySword.name;
+    if (swordHud) swordHud.textContent = myWeapon.icon + ' ' + myWeapon.name + (isGun ? ' 🔫' : ' 🗡️');
     function updateHud() {
       const pct = Math.max(0, myHp);
       if (hpFill) { hpFill.style.width = pct + '%'; hpFill.style.background = myHp > 50 ? '#22c55e' : myHp > 25 ? '#f59e0b' : '#ef4444'; }
@@ -3868,19 +3900,33 @@
     window.addEventListener('keydown', onKD);
     window.addEventListener('keyup',   onKU);
 
-    /* ── Swing ── */
+    /* ── Attack (swing for swords, shoot for guns) ── */
     function doSwing() {
       if (swingCooldown > 0 || isDead || gameOver) return;
-      swingCooldown = mySword.cooldown;
-      if (swingFlash) { swingFlash.classList.add('active'); setTimeout(() => swingFlash.classList.remove('active'), 100); }
+      swingCooldown = myWeapon.cooldown;
+      if (swingFlash) { swingFlash.classList.add('active'); setTimeout(() => swingFlash.classList.remove('active'), 80); }
       if (_arenaConn) _arenaConn.send({ type: 'arena-swing' });
-      // Hit check: distance + facing cone
-      const flat = new THREE.Vector3(oppPos.x - playerPos.x, 0, oppPos.z - playerPos.z);
-      if (flat.length() < 3.5) {
-        const toOpp   = flat.clone().normalize();
-        const facing  = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
-        if (facing.dot(toOpp) > 0.3) {
-          if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: mySword.damage });
+
+      if (isGun) {
+        // Spawn a bullet travelling in camera facing direction
+        const bulletMat = new THREE.MeshBasicMaterial({ color: myWeapon.color || 0xffff00 });
+        const bulletMesh = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), bulletMat);
+        const origin = new THREE.Vector3(playerPos.x, playerPos.y + EYE_H - 0.1, playerPos.z);
+        bulletMesh.position.copy(origin);
+        scene.add(bulletMesh);
+        const dir = new THREE.Vector3(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+        const BULLET_SPEED = 35;
+        const maxRange = myWeapon.range || 20;
+        bullets.push({ mesh: bulletMesh, vel: dir.multiplyScalar(BULLET_SPEED), life: maxRange / BULLET_SPEED, hit: false });
+      } else {
+        // Melee: distance + facing cone
+        const flat = new THREE.Vector3(oppPos.x - playerPos.x, 0, oppPos.z - playerPos.z);
+        if (flat.length() < 3.5) {
+          const toOpp  = flat.clone().normalize();
+          const facing = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+          if (facing.dot(toOpp) > 0.3) {
+            if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: myWeapon.damage });
+          }
         }
       }
     }
@@ -3898,15 +3944,33 @@
 
     function endGame(won) {
       gameOver = true;
+      if (won) {
+        questProgress['arena_wins'] = (questProgress['arena_wins'] || 0) + 1;
+        saveQuests(); checkBadges();
+      }
       if (winOverlay) winOverlay.style.display = '';
       if (winTextEl)  { winTextEl.textContent = won ? '🏆 You Win!' : '💀 You Lose!'; winTextEl.style.color = won ? '#f5c542' : '#ef4444'; }
       if (document.pointerLockElement === canvas) document.exitPointerLock();
     }
 
+    /* ── Send active weapon to opponent on connect ── */
+    if (_arenaConn) {
+      const wpnType = activeWeaponType === 'gun' ? 'gun' : 'sword';
+      const wpnId   = activeWeaponType === 'gun' ? activeGun : activeSword;
+      _arenaConn.send({ type: 'arena-weapon', wpnType, wpnId });
+    }
+
     /* ── Incoming message handler (called by _setupArenaConn) ── */
     function onMsg(data) {
       switch (data.type) {
-        case 'arena-sword':
+        case 'arena-weapon': {
+          const oData = data.wpnType === 'gun' ? (GUNS[data.wpnId] || GUNS.pistol) : (SWORDS[data.wpnId] || SWORDS.wood);
+          oppSwordData = oData;
+          oppBodyMat.color.setHex(oData.color || 0x4a9eff);
+          oppSwordMesh.material.color.setHex(oData.color || 0x888888);
+          break;
+        }
+        case 'arena-sword': // legacy
           oppSwordData = SWORDS[data.sword] || SWORDS.wood;
           oppBodyMat.color.setHex(oppSwordData.color || 0x4a9eff);
           oppSwordMesh.material.color.setHex(oppSwordData.color || 0x888888);
@@ -3991,6 +4055,22 @@
           if (deathOverlay) deathOverlay.style.display = 'none';
           if (_arenaConn) _arenaConn.send({ type: 'arena-respawn' });
         }
+      }
+
+      // Bullet tick (gun mode)
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.life -= dt;
+        b.mesh.position.addScaledVector(b.vel, dt);
+        // Check hit against opponent
+        if (!b.hit && b.mesh.position.distanceTo(oppGroup.position) < 1.2) {
+          b.hit = true;
+          if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: myWeapon.damage });
+          scene.remove(b.mesh);
+          bullets.splice(i, 1);
+          continue;
+        }
+        if (b.life <= 0) { scene.remove(b.mesh); bullets.splice(i, 1); }
       }
 
       camera.position.set(playerPos.x, playerPos.y + EYE_H, playerPos.z);
