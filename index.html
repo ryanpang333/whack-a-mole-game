@@ -756,6 +756,85 @@
       position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: rgba(0,0,0,0.58); cursor: pointer; pointer-events: all; gap: 10px;
     }
+
+    /* ── Quests ── */
+    .btn-quests { background: #f97316; color: #fff; box-shadow: 0 4px 0 #c2410c; }
+    #screen-quests, #screen-story { overflow-y: auto; }
+    .quest-list   { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+    .quest-card   {
+      background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.13);
+      border-radius: 14px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .quest-card.done { opacity: 0.45; }
+    .quest-card.claimable { border-color: #f5c542; background: rgba(245,197,66,0.1); }
+    .quest-icon  { font-size: 1.8rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .quest-body  { flex: 1; min-width: 0; }
+    .quest-name  { font-weight: 900; font-size: 0.92rem; }
+    .quest-desc  { font-size: 0.75rem; opacity: 0.65; margin-top: 2px; }
+    .quest-prog  { margin-top: 8px; }
+    .quest-prog-bar-bg   { height: 8px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+    .quest-prog-bar-fill { height: 100%; background: #4a9eff; border-radius: 4px; transition: width 0.3s; }
+    .quest-prog-bar-fill.done-fill { background: #22c55e; }
+    .quest-prog-text { font-size: 0.7rem; opacity: 0.6; margin-top: 3px; }
+    .quest-reward { font-size: 0.75rem; color: #f5c542; font-weight: 700; margin-top: 4px; }
+    .quest-claim-btn { font-size: 0.78rem; padding: 6px 14px; width: auto; border-radius: 8px; margin-top: 6px; background: #f5c542; color: #1a1a1a; }
+    .quest-cat-header { font-size: 0.8rem; font-weight: 900; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 2px; }
+
+    /* ── Story Mode ── */
+    .btn-story { background: #7c3aed; color: #fff; box-shadow: 0 4px 0 #4c1d95; }
+    .story-ch-list { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+    .story-ch-card {
+      background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.13);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px; cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .story-ch-card:hover:not(.locked) { border-color: #a78bfa; background: rgba(124,58,237,0.15); }
+    .story-ch-card.locked   { opacity: 0.4; cursor: default; }
+    .story-ch-card.complete { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+    .story-ch-card.active   { border-color: #f5c542; }
+    .story-ch-num  { font-size: 1.4rem; font-weight: 900; opacity: 0.35; min-width: 28px; text-align: center; }
+    .story-ch-icon { font-size: 2rem; }
+    .story-ch-body { flex: 1; }
+    .story-ch-name { font-weight: 900; font-size: 0.92rem; }
+    .story-ch-bot  { font-size: 0.75rem; opacity: 0.6; margin-top: 1px; }
+    .story-ch-meta { font-size: 0.72rem; opacity: 0.55; margin-top: 3px; }
+    .story-ch-badge { font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+    .diff-easy   { background: rgba(76,175,80,0.25);  color: #4caf50; }
+    .diff-normal { background: rgba(74,158,255,0.25); color: #4a9eff; }
+    .diff-hard   { background: rgba(239,68,68,0.25);  color: #ef4444; }
+    .story-ch-state { font-size: 1.4rem; flex-shrink: 0; }
+    /* Story result */
+    .story-vs { display: flex; gap: 28px; align-items: center; justify-content: center; }
+    .story-vs-side { text-align: center; }
+    .story-vs-pts  { font-size: 3rem; font-weight: 900; text-shadow: 2px 2px 0 #000; }
+    .story-vs-lbl  { font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; margin-bottom: 4px; }
+    .story-reward-box { background: rgba(245,197,66,0.15); border: 2px solid #f5c542; border-radius: 12px; padding: 12px 24px; text-align: center; }
+
+    /* ── Weapon tabs (Server screen) ── */
+    .weapon-tabs { display:flex; gap:6px; width:100%; max-width:300px; }
+    .weapon-tab  {
+      flex:1; padding:10px 8px; border-radius:10px; border:2px solid rgba(255,255,255,0.15);
+      background:rgba(255,255,255,0.07); font-size:0.88rem; font-weight:800; cursor:pointer;
+      transition:border-color .15s, background .15s; color:#fff;
+    }
+    .weapon-tab.active   { border-color:#f5c542; background:rgba(245,197,66,0.15); }
+    .weapon-active-label {
+      font-size:0.8rem; opacity:0.7; background:rgba(255,255,255,0.08);
+      border-radius:8px; padding:6px 14px; margin-top:-6px;
+    }
+
+    /* ── Badge rarity colours ── */
+    .badge-item.rarity-rare       { border-color: rgba(74,158,255,0.45); }
+    .badge-item.rarity-epic       { border-color: rgba(168,85,247,0.45); }
+    .badge-item.rarity-legendary  { border-color: rgba(245,197,66,0.55); }
+    .badge-item.rarity-admin      { border-color: rgba(255,0,68,0.55); }
+    .badge-rarity-pip { font-size:0.65rem; font-weight:800; padding:2px 7px; border-radius:5px; margin-left:4px; }
+    .pip-common    { background:rgba(255,255,255,0.15); color:#ccc; }
+    .pip-rare      { background:rgba(74,158,255,0.25);  color:#93c5fd; }
+    .pip-epic      { background:rgba(168,85,247,0.25);  color:#d8b4fe; }
+    .pip-legendary { background:rgba(245,197,66,0.25);  color:#f5c542; }
+    .pip-admin     { background:rgba(255,0,68,0.25);    color:#ff6b8a; }
   </style>
 </head>
 <body>
@@ -901,6 +980,8 @@
   <button class="btn btn-skins"     onclick="openSkinShop()">🎨 Skins</button>
   <button class="btn btn-lobby"     onclick="openLobby()">🏠 3D Lobby</button>
   <button class="btn btn-server"    onclick="openServer()">⚔️ Server</button>
+  <button class="btn btn-story"     onclick="openStory()">📖 Story Mode</button>
+  <button class="btn btn-quests"    onclick="openQuests()">📋 Quests</button>
 </div>
 
 <!-- ═══════════════════ POWER-UP SHOP ═══════════════════ -->
@@ -1074,10 +1155,28 @@
   <div class="srv-panel" id="srv-hub">
     <div style="font-size:3rem;">⚔️</div>
     <div class="title" style="font-size:2.5rem;">Server</div>
-    <p style="opacity:0.6;text-align:center;margin:0;">3D battle arena — fight other players with swords!<br>First to 5 kills wins.</p>
+    <p style="opacity:0.6;text-align:center;margin:0;">3D battle arena — first to 5 kills wins!</p>
     <div class="coin-display">🪙 <span id="srv-coin-count">0</span></div>
-    <div style="font-weight:900;font-size:1rem;margin-bottom:-6px;">🗡️ Choose Your Sword</div>
-    <div class="sword-shop-grid" id="sword-shop-grid"></div>
+
+    <!-- Weapon type tabs -->
+    <div class="weapon-tabs">
+      <button class="weapon-tab active" id="tab-swords" onclick="switchWeaponTab('swords')">🗡️ Swords</button>
+      <button class="weapon-tab"        id="tab-guns"   onclick="switchWeaponTab('guns')">🔫 Guns</button>
+    </div>
+
+    <!-- Sword shop -->
+    <div id="srv-swords-section">
+      <div class="sword-shop-grid" id="sword-shop-grid"></div>
+    </div>
+
+    <!-- Gun shop (hidden by default) -->
+    <div id="srv-guns-section" style="display:none;">
+      <div class="sword-shop-grid" id="gun-shop-grid"></div>
+    </div>
+
+    <!-- Active weapon label -->
+    <div class="weapon-active-label" id="active-weapon-label">Active: 🪵 Wood Sword</div>
+
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       <button class="btn btn-primary"   onclick="hostArena()">⚔️ Create Room</button>
       <button class="btn btn-secondary" onclick="showSrvPanel('srv-joining')">🔗 Join Room</button>
@@ -1165,6 +1264,57 @@
   </div>
 </div>
 
+<!-- ═══════════════════ QUESTS ═══════════════════ -->
+<div class="screen screen-scroll" id="screen-quests">
+  <div class="title" style="font-size:2.5rem;">📋 Quests</div>
+  <p style="opacity:0.6;text-align:center;margin:0;">Complete challenges to earn coins and XP!</p>
+  <div class="coin-display">🪙 <span id="quests-coin-count">0</span></div>
+  <div class="quest-list" id="quest-list"></div>
+  <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
+</div>
+
+<!-- ═══════════════════ STORY MODE ═══════════════════ -->
+<div class="screen screen-scroll" id="screen-story">
+  <div class="title" style="font-size:2.5rem;">📖 Story Mode</div>
+  <p style="opacity:0.6;text-align:center;max-width:380px;margin:0;">
+    Beat each chapter's bot to unlock the next.<br>Every boss is harder than the last!
+  </p>
+  <div id="story-progress-bar-wrap" style="width:100%;max-width:520px;background:rgba(255,255,255,0.1);border-radius:8px;height:10px;overflow:hidden;">
+    <div id="story-progress-bar" style="height:100%;background:#7c3aed;border-radius:8px;transition:width .4s;width:0%"></div>
+  </div>
+  <div style="font-size:0.75rem;opacity:0.5;" id="story-progress-label">0 / 10 chapters complete</div>
+  <div class="story-ch-list" id="story-ch-list"></div>
+  <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
+</div>
+
+<!-- ═══════════════════ STORY RESULT ═══════════════════ -->
+<div class="screen" id="screen-story-result">
+  <div id="str-icon" style="font-size:4rem;">🏆</div>
+  <div class="title" id="str-title" style="font-size:2.2rem;">Victory!</div>
+  <div id="str-flavor" style="font-size:0.85rem;opacity:0.6;text-align:center;max-width:340px;margin:0 auto;"></div>
+  <div class="story-vs">
+    <div class="story-vs-side">
+      <div class="story-vs-lbl">You</div>
+      <div class="story-vs-pts" id="str-my-score">0</div>
+    </div>
+    <div style="font-size:1.5rem;opacity:0.4;">VS</div>
+    <div class="story-vs-side">
+      <div id="str-bot-icon" style="font-size:2rem;"></div>
+      <div class="story-vs-lbl" id="str-bot-name">Bot</div>
+      <div class="story-vs-pts" id="str-bot-score">0</div>
+    </div>
+  </div>
+  <div class="xp-gain-box" id="str-xp-box" style="display:none;">
+    <div class="xp-gain-amt">+<span id="str-xp-amt">0</span> XP</div>
+    <div class="xp-gain-lbl" id="str-xp-lbl"></div>
+  </div>
+  <div class="story-reward-box" id="str-reward-box" style="display:none;">
+    <div style="font-weight:900;margin-bottom:4px;">🎁 Reward Earned!</div>
+    <div id="str-reward-text" style="font-size:0.9rem;"></div>
+  </div>
+  <div id="str-btns" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"></div>
+</div>
+
 <!-- ═══════════════════ LEVEL SELECT ═══════════════════ -->
 <div class="screen" id="screen-mode">
   <div class="title" style="font-size:2.5rem;">Choose Difficulty</div>
@@ -1249,6 +1399,266 @@
    */
   const GOOGLE_CLIENT_ID = 'YOUR_CLIENT_ID.apps.googleusercontent.com';
 
+  /* ════════════════════════════════════════════════
+     QUESTS
+  ════════════════════════════════════════════════ */
+  const QUESTS = [
+    { id:'q1',  cat:'🎯 Score',   name:'First Strike',    desc:'Score 10 pts in one game',         type:'game_score',   target:10,    reward:{ coins:50 },          icon:'🎯' },
+    { id:'q2',  cat:'🎯 Score',   name:'On Fire',         desc:'Score 25 pts in one game',         type:'game_score',   target:25,    reward:{ coins:150 },         icon:'🔥' },
+    { id:'q3',  cat:'🎯 Score',   name:'Unstoppable',     desc:'Score 40 pts in one game',         type:'game_score',   target:40,    reward:{ coins:400, xp:200 }, icon:'⚡' },
+    { id:'q4',  cat:'🪙 Coins',   name:'Coin Collector',  desc:'Earn 100 total coins',             type:'total_coins',  target:100,   reward:{ coins:50 },          icon:'🪙' },
+    { id:'q5',  cat:'🪙 Coins',   name:'Getting Rich',    desc:'Earn 1,000 total coins',           type:'total_coins',  target:1000,  reward:{ coins:200 },         icon:'💰' },
+    { id:'q6',  cat:'🪙 Coins',   name:'Millionaire',     desc:'Earn 10,000 total coins',          type:'total_coins',  target:10000, reward:{ coins:1000, xp:500 },icon:'🤑' },
+    { id:'q7',  cat:'🎮 Games',   name:'Warm Up',         desc:'Play 5 games',                     type:'games_played', target:5,     reward:{ coins:75 },          icon:'🎮' },
+    { id:'q8',  cat:'🎮 Games',   name:'Dedicated',       desc:'Play 25 games',                    type:'games_played', target:25,    reward:{ coins:250 },         icon:'🏅' },
+    { id:'q9',  cat:'🎮 Games',   name:'Addict',          desc:'Play 100 games',                   type:'games_played', target:100,   reward:{ coins:1000, xp:500 },icon:'🕹️' },
+    { id:'q10', cat:'💪 Skill',   name:'Brave',           desc:'Finish a Hard game',               type:'diff_game',    target:'hard',reward:{ coins:100, xp:150 }, icon:'💪' },
+    { id:'q11', cat:'💪 Skill',   name:'S-Rank',          desc:'Score 30+ on Hard difficulty',     type:'hard_score',   target:30,    reward:{ coins:500, xp:300 }, icon:'🏆' },
+    { id:'q12', cat:'👥 Social',  name:'PvP Debut',       desc:'Play a multiplayer game',          type:'multi_play',   target:1,     reward:{ coins:100 },         icon:'👥' },
+    { id:'q13', cat:'👥 Social',  name:'PvP Champion',    desc:'Win a multiplayer game',           type:'multi_win',    target:1,     reward:{ coins:300, xp:200 }, icon:'👑' },
+    { id:'q14', cat:'📖 Story',   name:'First Chapter',   desc:'Complete Story Chapter 1',         type:'story_ch',     target:1,     reward:{ coins:100 },         icon:'📖' },
+    { id:'q15', cat:'📖 Story',   name:'Story Veteran',   desc:'Complete Story Chapter 5',         type:'story_ch',     target:5,     reward:{ coins:500 },         icon:'📚' },
+    { id:'q16', cat:'📖 Story',   name:'Story Master',    desc:'Complete all 10 story chapters',   type:'story_ch',     target:10,    reward:{ coins:2000, xp:1000},icon:'🌟' },
+    { id:'q17', cat:'⬆️ Level',   name:'Leveling Up',     desc:'Reach Level 5',                    type:'level',        target:5,     reward:{ coins:150 },         icon:'⬆️' },
+    { id:'q18', cat:'⬆️ Level',   name:'Veteran',         desc:'Reach Level 15',                   type:'level',        target:15,    reward:{ coins:500, xp:300 }, icon:'🎖️' },
+  ];
+
+  let questProgress   = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_prog')) || '{}'); } catch{ return {}; } })();
+  let claimedQuests   = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_done')) || '[]'); } catch{ return []; } })();
+  let totalGamesPlayed = parseInt(localStorage.getItem(gk('games_played')) || '0');
+
+  function saveQuests() {
+    localStorage.setItem(gk('quest_prog'), JSON.stringify(questProgress));
+    localStorage.setItem(gk('quest_done'), JSON.stringify(claimedQuests));
+    localStorage.setItem(gk('games_played'), totalGamesPlayed);
+  }
+
+  function questValue(q) {
+    switch (q.type) {
+      case 'game_score':   return questProgress[q.id] || 0;
+      case 'total_coins':  return totalCoinsEarned;
+      case 'games_played': return totalGamesPlayed;
+      case 'diff_game':    return (questProgress[q.id] || 0);
+      case 'hard_score':   return (questProgress[q.id] || 0);
+      case 'multi_play':   return (questProgress[q.id] || 0);
+      case 'multi_win':    return (questProgress[q.id] || 0);
+      case 'story_ch':     return storyProgress;
+      case 'level':        return playerLevel;
+      default:             return 0;
+    }
+  }
+
+  function questMet(q) {
+    const v = questValue(q);
+    if (q.type === 'diff_game') return v >= 1;
+    if (typeof q.target === 'string') return v === q.target || v >= 1;
+    return v >= q.target;
+  }
+
+  // Call after any game ends or relevant progress changes
+  function tickQuests({ gameScore = 0, difficulty = '', multiPlay = false, multiWin = false } = {}) {
+    let anyNew = false;
+    QUESTS.forEach(q => {
+      if (claimedQuests.includes(q.id)) return;
+      // Update numeric progress counters
+      if (q.type === 'game_score'   && gameScore > (questProgress[q.id] || 0))  { questProgress[q.id] = gameScore; }
+      if (q.type === 'hard_score'   && difficulty === 'hard' && gameScore > (questProgress[q.id] || 0)) { questProgress[q.id] = gameScore; }
+      if (q.type === 'diff_game'    && difficulty === q.target) { questProgress[q.id] = 1; }
+      if (q.type === 'multi_play'   && multiPlay)  { questProgress[q.id] = 1; }
+      if (q.type === 'multi_win'    && multiWin)   { questProgress[q.id] = 1; }
+      // Auto-claim completed quests and award rewards
+      if (questMet(q)) {
+        claimedQuests.push(q.id);
+        anyNew = true;
+        if (q.reward.coins) { coins += q.reward.coins; totalCoinsEarned += q.reward.coins; saveProgress(); }
+        if (q.reward.xp)    { awardXP(q.reward.xp); }
+        // Toast-style notification
+        const r = [];
+        if (q.reward.coins) r.push('🪙 ' + q.reward.coins);
+        if (q.reward.xp)    r.push('⬆️ ' + q.reward.xp + ' XP');
+        _toastQueue.push({ name: '✅ Quest: ' + q.name, desc: r.join('  '), icon: q.icon });
+        _drainToast();
+      }
+    });
+    if (anyNew) { saveQuests(); updateCoinDisplays(); }
+    saveQuests();
+  }
+
+  function openQuests() {
+    document.getElementById('quests-coin-count').textContent = coins;
+    renderQuestList();
+    goTo('screen-quests');
+  }
+
+  function renderQuestList() {
+    const list = document.getElementById('quest-list');
+    if (!list) return;
+    // Group by category
+    const cats = [...new Set(QUESTS.map(q => q.cat))];
+    list.innerHTML = cats.map(cat => {
+      const qs = QUESTS.filter(q => q.cat === cat);
+      const rows = qs.map(q => {
+        const done  = claimedQuests.includes(q.id);
+        const val   = questValue(q);
+        const tgt   = typeof q.target === 'string' ? 1 : q.target;
+        const cur   = typeof q.target === 'string' ? (questProgress[q.id] || 0) : Math.min(val, tgt);
+        const pct   = Math.min(100, Math.round(cur / tgt * 100));
+        const rewardStr = [q.reward.coins ? '🪙 ' + q.reward.coins : '', q.reward.xp ? '⬆️ ' + q.reward.xp + ' XP' : ''].filter(Boolean).join('  ');
+        return `<div class="quest-card ${done ? 'done' : ''}">
+          <div class="quest-icon">${done ? '✅' : q.icon}</div>
+          <div class="quest-body">
+            <div class="quest-name">${q.name}</div>
+            <div class="quest-desc">${q.desc}</div>
+            <div class="quest-prog">
+              <div class="quest-prog-bar-bg"><div class="quest-prog-bar-fill ${done ? 'done-fill' : ''}" style="width:${pct}%"></div></div>
+              <div class="quest-prog-text">${done ? 'Complete!' : cur + ' / ' + tgt}</div>
+            </div>
+            <div class="quest-reward">${rewardStr}</div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="quest-cat-header">${cat}</div>${rows}`;
+    }).join('');
+  }
+
+  /* ════════════════════════════════════════════════
+     STORY MODE
+  ════════════════════════════════════════════════ */
+  const STORY_CHAPTERS = [
+    { id:1,  name:'The Rookie',      bot:'Moldy',     botIcon:'🐭', target:5,  diff:'easy',   reward:{ coins:50  },          story:'A rookie mole has been causing chaos at the farm. Show them who\'s boss!' },
+    { id:2,  name:'Backyard Battle', bot:'Digger',    botIcon:'🦡', target:8,  diff:'easy',   reward:{ coins:100 },          story:'Digger burrows faster than any mole you\'ve faced. Stay sharp!' },
+    { id:3,  name:'The Burrow',      bot:'Rustle',    botIcon:'🌿', target:11, diff:'easy',   reward:{ coins:150 },          story:'Rustle pops up seemingly at random. Predict the patterns!' },
+    { id:4,  name:'Mud Pit',         bot:'Muddy',     botIcon:'💧', target:14, diff:'normal', reward:{ coins:200 },          story:'Muddy coats the holes in mud, making bombs harder to spot. Watch out!' },
+    { id:5,  name:'Speed Demon',     bot:'Flash',     botIcon:'⚡', target:17, diff:'normal', reward:{ coins:300 },          story:'Flash is almost invisible — blink and you\'ll miss them entirely.' },
+    { id:6,  name:'Iron Fist',       bot:'Steel',     botIcon:'⚙️', target:21, diff:'normal', reward:{ coins:400 },          story:'Steel is tactical and precise, using bombs to drain your score fast.' },
+    { id:7,  name:'The Phantom',     bot:'Phantom',   botIcon:'👻', target:25, diff:'hard',   reward:{ coins:500 },          story:'Phantom appears and vanishes in milliseconds. Your reflexes are everything.' },
+    { id:8,  name:'Shadow Master',   bot:'Shadow',    botIcon:'🌑', target:29, diff:'hard',   reward:{ coins:750 },          story:'Shadow controls the entire field with overwhelming speed and bomb barrages.' },
+    { id:9,  name:'The Titan',       bot:'Titan',     botIcon:'🦾', target:34, diff:'hard',   reward:{ coins:1000 },         story:'Titan is the most powerful mole ever trained. Absolute precision required.' },
+    { id:10, name:'The Final Boss',  bot:'The Admin', botIcon:'🤖', target:39, diff:'hard',   reward:{ coins:2000, xp:1000 },story:'The Admin — creator of all moles — has entered the arena. Defeat them to become a legend!' },
+  ];
+
+  let storyProgress    = parseInt(localStorage.getItem(gk('story_progress')) || '0');
+  let storyMode        = false;
+  let storyChapterId   = 0;
+
+  function saveStory() { localStorage.setItem(gk('story_progress'), storyProgress); }
+
+  function openStory() {
+    renderStoryScreen();
+    goTo('screen-story');
+  }
+
+  function renderStoryScreen() {
+    const list = document.getElementById('story-ch-list');
+    const bar  = document.getElementById('story-progress-bar');
+    const lbl  = document.getElementById('story-progress-label');
+    if (!list) return;
+    if (bar) bar.style.width = (storyProgress / 10 * 100) + '%';
+    if (lbl) lbl.textContent = storyProgress + ' / 10 chapters complete';
+    list.innerHTML = STORY_CHAPTERS.map(ch => {
+      const done    = storyProgress >= ch.id;
+      const unlocked = storyProgress >= ch.id - 1;
+      const isCurrent = storyProgress === ch.id - 1;
+      let stateIcon = done ? '✅' : unlocked ? '▶️' : '🔒';
+      let cls = done ? 'complete' : !unlocked ? 'locked' : isCurrent ? 'active' : '';
+      const diffLabel = `<span class="story-ch-badge diff-${ch.diff}">${ch.diff}</span>`;
+      const rewardStr = [ch.reward.coins ? '🪙 ' + ch.reward.coins : '', ch.reward.xp ? '⬆️ ' + ch.reward.xp + ' XP' : ''].filter(Boolean).join(' · ');
+      const onclick = unlocked ? `onclick="startStoryChapter(${ch.id})"` : '';
+      return `<div class="story-ch-card ${cls}" ${onclick}>
+        <div class="story-ch-num">${ch.id}</div>
+        <div class="story-ch-icon">${ch.botIcon}</div>
+        <div class="story-ch-body">
+          <div class="story-ch-name">${ch.name}</div>
+          <div class="story-ch-bot">vs ${ch.bot} ${diffLabel}</div>
+          <div class="story-ch-meta">Target: ${ch.target} pts · Reward: ${rewardStr}</div>
+        </div>
+        <div class="story-ch-state">${stateIcon}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function startStoryChapter(chId) {
+    const ch = STORY_CHAPTERS.find(c => c.id === chId);
+    if (!ch) return;
+    if (storyProgress < ch.id - 1) return; // locked
+    storyMode = true;
+    storyChapterId = chId;
+    startGame(ch.diff);
+  }
+
+  function endStoryChapter(playerScore) {
+    const ch = STORY_CHAPTERS.find(c => c.id === storyChapterId);
+    if (!ch) { goTo('screen-home'); return; }
+
+    const won = playerScore > ch.target;
+
+    // Award XP regardless
+    const xpGained = Math.round(playerScore * XP_DIFF_MULT[ch.diff] * getActivePetXPMult());
+    const lvBefore  = playerLevel;
+    if (xpGained > 0) awardXP(xpGained);
+
+    // If won: give reward and advance progress
+    if (won && storyProgress < ch.id) {
+      storyProgress = ch.id;
+      saveStory();
+      if (ch.reward.coins) { coins += ch.reward.coins; totalCoinsEarned += ch.reward.coins; saveProgress(); }
+      if (ch.reward.xp)    { awardXP(ch.reward.xp); }
+      updateCoinDisplays();
+      tickQuests({ gameScore: playerScore, difficulty: ch.diff });
+    } else {
+      tickQuests({ gameScore: playerScore, difficulty: ch.diff });
+    }
+
+    // Populate result screen
+    document.getElementById('str-icon').textContent  = won ? '🏆' : '💀';
+    document.getElementById('str-title').textContent = won ? 'Victory!' : 'Defeated…';
+    document.getElementById('str-my-score').textContent  = playerScore;
+    document.getElementById('str-bot-score').textContent = ch.target;
+    document.getElementById('str-bot-icon').textContent  = ch.botIcon;
+    document.getElementById('str-bot-name').textContent  = ch.bot;
+    document.getElementById('str-flavor').textContent    = won
+      ? (ch.id === 10 ? '🌟 You are the ultimate Whack-a-Mole champion!' : 'You defeated ' + ch.bot + '! Chapter ' + ch.id + ' complete.')
+      : ch.bot + ' scored ' + ch.target + '. You need more than ' + ch.target + ' to win!';
+
+    // XP box
+    const xpBox = document.getElementById('str-xp-box');
+    if (xpGained > 0) {
+      document.getElementById('str-xp-amt').textContent = xpGained;
+      document.getElementById('str-xp-lbl').textContent = playerLevel > lvBefore
+        ? `Level up! Now Lv.${playerLevel} — ${getLevelRank(playerLevel)}`
+        : `${playerXP} / ${xpToNextLevel(playerLevel)} XP to Lv.${playerLevel + 1}`;
+      xpBox.style.display = '';
+    } else { xpBox.style.display = 'none'; }
+
+    // Reward box
+    const rewardBox = document.getElementById('str-reward-box');
+    if (won) {
+      const parts = [];
+      if (ch.reward.coins) parts.push('🪙 ' + ch.reward.coins + ' Coins');
+      if (ch.reward.xp)    parts.push('⬆️ ' + ch.reward.xp + ' XP');
+      document.getElementById('str-reward-text').textContent = parts.join('  ');
+      rewardBox.style.display = '';
+    } else { rewardBox.style.display = 'none'; }
+
+    // Buttons
+    const btns = document.getElementById('str-btns');
+    const nextCh = STORY_CHAPTERS.find(c => c.id === ch.id + 1);
+    btns.innerHTML = '';
+    if (won && nextCh) {
+      btns.innerHTML += `<button class="btn btn-primary" onclick="startStoryChapter(${nextCh.id})">▶ Chapter ${nextCh.id}: ${nextCh.name}</button>`;
+    }
+    btns.innerHTML += `<button class="btn btn-secondary" onclick="replayStoryChapter()">↺ Retry</button>`;
+    btns.innerHTML += `<button class="btn btn-back" onclick="openStory()">← Chapters</button>`;
+
+    goTo('screen-story-result');
+  }
+
+  function replayStoryChapter() {
+    storyMode = true;
+    const ch = STORY_CHAPTERS.find(c => c.id === storyChapterId);
+    if (ch) startGame(ch.diff);
+  }
+
   /* ── Difficulty config ── */
   const CONFIGS = {
     easy:   { duration: 45, moleUpMin: 1100, moleUpMax: 1800, spawnInterval: 900,  bombChance: 0.10, bombPenalty: 2, coinReward: 1 },
@@ -1332,7 +1742,30 @@
     { id: 'level_200',      icon: '🌠', name: 'Mythic',         desc: 'Reach Level 200', avatar: '🌠' },
     { id: 'level_250',      icon: '👾', name: 'Transcendent',   desc: 'Reach Level 250', avatar: '👾' },
     { id: 'level_300',      icon: '🌀', name: 'Whack God',      desc: 'Reach Level 300',          avatar: '🌀' },
-    { id: 'admin',          icon: '⚜️', name: 'Admin',          desc: 'Redeemed the admin code',  avatar: '⚜️' },
+    { id: 'admin',          icon: '⚜️', name: 'Admin',          desc: 'Redeemed the admin code',   avatar: '⚜️',  rarity: 'admin' },
+    // Games played
+    { id: 'games_10',      icon: '🎮', name: 'Gamer',          desc: 'Play 10 games',             avatar: '🎮',  rarity: 'common' },
+    { id: 'games_50',      icon: '🕹️', name: 'Hardcore',       desc: 'Play 50 games',             avatar: '🕹️',  rarity: 'rare' },
+    { id: 'games_100',     icon: '🏅', name: 'Centurion',      desc: 'Play 100 games',            avatar: '🏅',  rarity: 'epic' },
+    // Score feats
+    { id: 'score_25',      icon: '🔥', name: 'Sharpshooter',   desc: 'Score 25+ in one game',     avatar: '🔥',  rarity: 'common' },
+    { id: 'score_40',      icon: '💥', name: 'Demolisher',     desc: 'Score 40+ in one game',     avatar: '💥',  rarity: 'rare' },
+    { id: 's_rank',        icon: '🌟', name: 'S-Rank',         desc: 'Score 30+ on Hard',         avatar: '🌟',  rarity: 'epic' },
+    // Story
+    { id: 'story_1',       icon: '📖', name: 'Adventurer',     desc: 'Complete Story Chapter 1',  avatar: '📖',  rarity: 'common' },
+    { id: 'story_5',       icon: '📚', name: 'Story Veteran',  desc: 'Complete Story Chapter 5',  avatar: '📚',  rarity: 'rare' },
+    { id: 'story_10',      icon: '🏆', name: 'Story Master',   desc: 'Complete all 10 chapters',  avatar: '🏆',  rarity: 'legendary' },
+    // Quests
+    { id: 'quests_5',      icon: '✅', name: 'Quest Starter',  desc: 'Complete 5 quests',         avatar: '✅',  rarity: 'common' },
+    { id: 'quests_all',    icon: '🌈', name: 'Quest Legend',   desc: 'Complete all 18 quests',    avatar: '🌈',  rarity: 'legendary' },
+    // PvP
+    { id: 'pvp_win',       icon: '👑', name: 'PvP Champion',   desc: 'Win a multiplayer game',    avatar: '👑',  rarity: 'rare' },
+    { id: 'arena_win',     icon: '⚔️', name: 'Arena Victor',   desc: 'Win a server arena match',  avatar: '⚔️',  rarity: 'rare' },
+    // Weapons
+    { id: 'sword_diamond', icon: '💎', name: 'Diamond Blade',  desc: 'Unlock the Diamond sword',  avatar: '💎',  rarity: 'rare' },
+    { id: 'sword_admin',   icon: '⚡', name: 'Admin Blade',    desc: 'Unlock the Admin sword',    avatar: '⚡',  rarity: 'admin' },
+    { id: 'gun_sniper',    icon: '🎯', name: 'Dead-Eye',       desc: 'Unlock the Sniper rifle',   avatar: '🎯',  rarity: 'epic' },
+    { id: 'gun_admin',     icon: '⚡', name: 'Admin Gun',      desc: 'Unlock the Admin Gun',      avatar: '⚡',  rarity: 'admin' },
   ];
 
   function badgeCondition(id) {
@@ -1354,6 +1787,23 @@
     if (id === 'level_200')      return playerLevel >= 200;
     if (id === 'level_250')      return playerLevel >= 250;
     if (id === 'level_300')      return playerLevel >= 300;
+    if (id === 'games_10')       return totalGamesPlayed >= 10;
+    if (id === 'games_50')       return totalGamesPlayed >= 50;
+    if (id === 'games_100')      return totalGamesPlayed >= 100;
+    if (id === 'score_25')       return (questProgress['q2'] || 0) >= 25;
+    if (id === 'score_40')       return (questProgress['q3'] || 0) >= 40;
+    if (id === 's_rank')         return (questProgress['q11'] || 0) >= 30;
+    if (id === 'story_1')        return storyProgress >= 1;
+    if (id === 'story_5')        return storyProgress >= 5;
+    if (id === 'story_10')       return storyProgress >= 10;
+    if (id === 'quests_5')       return claimedQuests.length >= 5;
+    if (id === 'quests_all')     return claimedQuests.length >= QUESTS.length;
+    if (id === 'pvp_win')        return (questProgress['q13'] || 0) >= 1;
+    if (id === 'arena_win')      return (questProgress['arena_wins'] || 0) >= 1;
+    if (id === 'sword_diamond')  return ownedSwords.includes('diamond');
+    if (id === 'sword_admin')    return ownedSwords.includes('admin');
+    if (id === 'gun_sniper')     return ownedGuns.includes('sniper');
+    if (id === 'gun_admin')      return ownedGuns.includes('admingun');
     return false;
   }
 
@@ -1460,6 +1910,10 @@
     applySkin(activeSkin);
     ownedSwords = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_swords')) || '["wood"]'); } catch { return ['wood']; } })();
     activeSword = localStorage.getItem(gk('active_sword')) || 'wood';
+    questProgress    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_prog')) || '{}'); } catch{ return {}; } })();
+    claimedQuests    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_done')) || '[]'); } catch{ return []; } })();
+    totalGamesPlayed = parseInt(localStorage.getItem(gk('games_played')) || '0');
+    storyProgress    = parseInt(localStorage.getItem(gk('story_progress')) || '0');
     updateCoinDisplays();
     updateLevelDisplays();
     updateProfileBtn();
@@ -1651,6 +2105,9 @@
       saveSkins(); applySkin('default');
       ownedSwords = ['wood']; activeSword = 'wood';
       saveSwords();
+      questProgress = {}; claimedQuests = []; totalGamesPlayed = 0;
+      storyProgress = 0;
+      saveQuests(); saveStory();
       saveProgress(); savePets(); saveLevel(); saveProfile(); saveUsedCodes();
       updateCoinDisplays(); updateLevelDisplays(); updateProfileBtn();
       document.getElementById('code-input').value = '';
@@ -2852,9 +3309,25 @@
     resetAllHoles();
 
     if (quit) {
+      storyMode = false;
       if (isMultiplayer) leaveMulti(); else goTo('screen-home');
       return;
     }
+
+    // Story mode — hand off to story result handler
+    if (storyMode) {
+      storyMode = false;
+      totalGamesPlayed++;
+      saveQuests();
+      endStoryChapter(score);
+      return;
+    }
+
+    // Track games played + quests for normal games
+    totalGamesPlayed++;
+    const wasMulti = isMultiplayer;
+    const multiWon = isMultiplayer && score > opponentScore;
+    tickQuests({ gameScore: score, difficulty: currentDifficulty, multiPlay: wasMulti, multiWin: multiWon });
 
     // Send final score to opponent
     if (isMultiplayer && conn && conn.open) conn.send({ type: 'end', score });
@@ -2966,68 +3439,144 @@
     admin:     { name: 'Admin',     icon: '⚡', damage: 100, cooldown: 0.3, cost: 0,    adminOnly: true, color: 0xff0044 },
   };
 
+  const GUNS = {
+    pistol:   { name: 'Pistol',    icon: '🔫', damage: 12, cooldown: 0.8,  range: 22, cost: 0,     color: 0x888888 },
+    smg:      { name: 'SMG',       icon: '💨', damage: 8,  cooldown: 0.28, range: 18, cost: 400,   color: 0x4a9eff },
+    shotgun:  { name: 'Shotgun',   icon: '🔫', damage: 35, cooldown: 1.2,  range: 9,  cost: 800,   color: 0xf59e0b },
+    sniper:   { name: 'Sniper',    icon: '🎯', damage: 60, cooldown: 2.0,  range: 50, cost: 2500,  color: 0x22c55e },
+    minigun:  { name: 'Minigun',   icon: '🌀', damage: 6,  cooldown: 0.12, range: 16, cost: 5000,  color: 0xdc2626 },
+    rpg:      { name: 'RPG',       icon: '💥', damage: 90, cooldown: 2.5,  range: 30, cost: 9000,  color: 0xff6600 },
+    admingun: { name: 'Admin Gun', icon: '⚡', damage: 100,cooldown: 0.08, range: 50, cost: 0,     adminOnly: true, color: 0xff0044 },
+  };
+
   let ownedSwords = (() => {
     try { return JSON.parse(localStorage.getItem(gk('owned_swords')) || '["wood"]'); }
     catch { return ['wood']; }
   })();
   let activeSword = localStorage.getItem(gk('active_sword')) || 'wood';
 
+  let ownedGuns = (() => {
+    try { return JSON.parse(localStorage.getItem(gk('owned_guns')) || '["pistol"]'); }
+    catch { return ['pistol']; }
+  })();
+  let activeGun = localStorage.getItem(gk('active_gun')) || 'pistol';
+
+  // 'sword' or 'gun' — whichever was last equipped
+  let activeWeaponType = localStorage.getItem(gk('weapon_type')) || 'sword';
+
   function saveSwords() {
     localStorage.setItem(gk('owned_swords'), JSON.stringify(ownedSwords));
     localStorage.setItem(gk('active_sword'), activeSword);
+  }
+  function saveGuns() {
+    localStorage.setItem(gk('owned_guns'), JSON.stringify(ownedGuns));
+    localStorage.setItem(gk('active_gun'), activeGun);
+    localStorage.setItem(gk('weapon_type'), activeWeaponType);
+  }
+
+  function _weaponShopCard(id, data, owned, active, isSword) {
+    const isAdmin = data.adminOnly;
+    let btn = '';
+    if (active)
+      btn = '<span style="color:#f5c542;font-weight:900;font-size:0.72rem;">✓ EQUIPPED</span>';
+    else if (owned)
+      btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;" onclick="${isSword ? 'equipSword' : 'equipGun'}('${id}')">Equip</button>`;
+    else if (isAdmin)
+      btn = '<span style="opacity:0.4;font-size:0.7rem;">Admin only</span>';
+    else if (coins >= data.cost)
+      btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;" onclick="${isSword ? 'buySword' : 'buyGun'}('${id}')">🪙 ${data.cost}</button>`;
+    else
+      btn = `<span style="opacity:0.4;font-size:0.7rem;">🪙 ${data.cost}</span>`;
+    const rc = isAdmin ? 'rarity-admin' : '';
+    const stat = isSword
+      ? `⚔️ ${data.damage} · ⚡ ${(1/data.cooldown).toFixed(1)}/s`
+      : `💥 ${data.damage} · ⚡ ${(1/data.cooldown).toFixed(1)}/s · 📏 ${data.range}u`;
+    return `<div class="sword-card ${active?'active':''} ${owned?'owned':''} ${rc}">
+      <div class="sword-icon">${data.icon}</div>
+      <div class="sword-name">${data.name}</div>
+      <div class="sword-stats">${stat}</div>
+      ${btn}
+    </div>`;
   }
 
   function renderSwordShop() {
     const grid = document.getElementById('sword-shop-grid');
     if (!grid) return;
     const isAdmin = earnedBadges.includes('admin');
-    grid.innerHTML = Object.entries(SWORDS).map(([id, sw]) => {
-      if (sw.adminOnly && !isAdmin) return '';
-      const owned  = ownedSwords.includes(id);
-      const active = activeSword === id;
-      let btn = '';
-      if (active)
-        btn = '<span style="color:#f5c542;font-weight:900;font-size:0.72rem;">✓ EQUIPPED</span>';
-      else if (owned)
-        btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;" onclick="equipSword('${id}')">Equip</button>`;
-      else if (sw.adminOnly)
-        btn = '<span style="opacity:0.4;font-size:0.7rem;">Admin only</span>';
-      else if (coins >= sw.cost)
-        btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;" onclick="buySword('${id}')">🪙 ${sw.cost}</button>`;
-      else
-        btn = `<span style="opacity:0.4;font-size:0.7rem;">🪙 ${sw.cost}</span>`;
-      const rarityClass = sw.adminOnly ? 'rarity-admin' : '';
-      return `<div class="sword-card ${active ? 'active' : ''} ${owned ? 'owned' : ''} ${rarityClass}">
-        <div class="sword-icon">${sw.icon}</div>
-        <div class="sword-name">${sw.name}</div>
-        <div class="sword-stats">⚔️ ${sw.damage} · ⚡ ${(1/sw.cooldown).toFixed(1)}/s</div>
-        ${btn}
-      </div>`;
-    }).join('');
+    grid.innerHTML = Object.entries(SWORDS)
+      .filter(([,sw]) => !sw.adminOnly || isAdmin)
+      .map(([id, sw]) => _weaponShopCard(id, sw, ownedSwords.includes(id), activeSword === id && activeWeaponType === 'sword', true))
+      .join('');
+    _updateActiveWeaponLabel();
+  }
+
+  function renderGunShop() {
+    const grid = document.getElementById('gun-shop-grid');
+    if (!grid) return;
+    const isAdmin = earnedBadges.includes('admin');
+    grid.innerHTML = Object.entries(GUNS)
+      .filter(([,g]) => !g.adminOnly || isAdmin)
+      .map(([id, g]) => _weaponShopCard(id, g, ownedGuns.includes(id), activeGun === id && activeWeaponType === 'gun', false))
+      .join('');
+    _updateActiveWeaponLabel();
+  }
+
+  function _updateActiveWeaponLabel() {
+    const el = document.getElementById('active-weapon-label');
+    if (!el) return;
+    if (activeWeaponType === 'gun') {
+      const g = GUNS[activeGun] || GUNS.pistol;
+      el.textContent = 'Active: ' + g.icon + ' ' + g.name + ' (Gun)';
+    } else {
+      const s = SWORDS[activeSword] || SWORDS.wood;
+      el.textContent = 'Active: ' + s.icon + ' ' + s.name + ' (Sword)';
+    }
+  }
+
+  function switchWeaponTab(tab) {
+    document.getElementById('srv-swords-section').style.display = tab === 'swords' ? '' : 'none';
+    document.getElementById('srv-guns-section').style.display   = tab === 'guns'   ? '' : 'none';
+    document.getElementById('tab-swords').classList.toggle('active', tab === 'swords');
+    document.getElementById('tab-guns').classList.toggle('active', tab === 'guns');
   }
 
   function buySword(id) {
     const sw = SWORDS[id];
     if (!sw || ownedSwords.includes(id) || coins < sw.cost) return;
-    coins -= sw.cost; totalCoinsEarned = Math.max(totalCoinsEarned, 0);
-    ownedSwords.push(id); activeSword = id;
+    coins -= sw.cost;
+    ownedSwords.push(id); activeSword = id; activeWeaponType = 'sword';
     saveSwords(); saveProgress(); updateCoinDisplays();
     document.getElementById('srv-coin-count').textContent = coins;
-    renderSwordShop();
+    renderSwordShop(); checkBadges();
   }
-
   function equipSword(id) {
     if (!ownedSwords.includes(id)) return;
-    activeSword = id; saveSwords(); renderSwordShop();
+    activeSword = id; activeWeaponType = 'sword';
+    saveSwords(); renderSwordShop(); renderGunShop();
+  }
+
+  function buyGun(id) {
+    const g = GUNS[id];
+    if (!g || ownedGuns.includes(id) || coins < g.cost) return;
+    coins -= g.cost;
+    ownedGuns.push(id); activeGun = id; activeWeaponType = 'gun';
+    saveGuns(); saveProgress(); updateCoinDisplays();
+    document.getElementById('srv-coin-count').textContent = coins;
+    renderGunShop(); checkBadges();
+  }
+  function equipGun(id) {
+    if (!ownedGuns.includes(id)) return;
+    activeGun = id; activeWeaponType = 'gun';
+    saveGuns(); renderSwordShop(); renderGunShop();
   }
 
   /* ── Server lobby ── */
   let _arenaPeer = null, _arenaConn = null, _arenaIsHost = false, _arenaInst = null;
 
   function openServer() {
-    renderSwordShop();
     const el = document.getElementById('srv-coin-count');
     if (el) el.textContent = coins;
+    renderSwordShop(); renderGunShop();
     showSrvPanel('srv-hub');
     goTo('screen-server');
   }
