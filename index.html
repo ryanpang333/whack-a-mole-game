@@ -2167,34 +2167,45 @@
       // Max out everything
       coins = 99999;
       totalCoinsEarned = Math.max(totalCoinsEarned, 99999);
-      Object.keys(PETS).forEach(id => { petInventory[id] = 99; });
-      if (!activePetId) activePetId = 'starmole';
       playerLevel = 300;
       playerXP    = 0;
-      savePets();
       saveLevel();
-      // Grant the exclusive Admin pet
-      petInventory['adminpet'] = 99;
-      if (!activePetId) activePetId = 'adminpet';
+
+      // All pets
+      Object.keys(PETS).forEach(id => { petInventory[id] = 99; });
+      activePetId = 'adminpet';
       savePets();
-      // Grant the exclusive Admin badge
-      if (!earnedBadges.includes('admin')) {
-        earnedBadges.push('admin');
-        const adminBadge = BADGES.find(b => b.id === 'admin');
-        if (adminBadge) { _toastQueue.push(adminBadge); _drainToast(); }
-        saveProfile();
-      }
-      // Grant the exclusive Glitch skin
-      if (!ownedSkins.includes('glitch')) ownedSkins.push('glitch');
+
+      // All skins
+      ownedSkins = Object.keys(SKINS);
       activeSkin = 'glitch';
       saveSkins();
-      // Grant the exclusive Admin sword
-      if (!ownedSwords.includes('admin')) ownedSwords.push('admin');
-      activeSword = 'admin'; saveSwords();
-      // Grant the exclusive Admin Gun
-      if (!ownedGuns.includes('admingun')) ownedGuns.push('admingun');
-      activeGun = 'admingun'; activeWeaponType = 'gun'; saveGuns();
       applySkin('glitch');
+
+      // All swords
+      ownedSwords = Object.keys(SWORDS);
+      activeSword = 'admin';
+      saveSwords();
+
+      // All guns
+      ownedGuns = Object.keys(GUNS);
+      activeGun = 'admingun';
+      activeWeaponType = 'gun';
+      saveGuns();
+
+      // All badges
+      earnedBadges = BADGES.map(b => b.id);
+      saveProfile();
+
+      // All quests completed
+      QUESTS.forEach(q => {
+        questProgress[q.id] = q.target;
+        if (!claimedQuests.includes(q.id)) claimedQuests.push(q.id);
+      });
+      storyProgress = 10;
+      totalGamesPlayed = Math.max(totalGamesPlayed, 100);
+      saveQuests();
+      localStorage.setItem(gk('story_progress'), storyProgress);
     } else {
       if (code.coins) {
         coins            += code.coins;
