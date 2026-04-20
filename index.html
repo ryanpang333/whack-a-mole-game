@@ -1366,6 +1366,27 @@
   <div id="str-btns" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;"></div>
 </div>
 
+<!-- ═══════════════════ SUIT SHOP ═══════════════════ -->
+<div class="screen screen-scroll" id="screen-suits">
+  <div style="font-size:3rem;">👔</div>
+  <div class="title" style="font-size:2rem;">Suit Shop</div>
+  <div class="suit-coin-display">🪙 <span id="suit-coin-count">0</span></div>
+
+  <div class="weapon-tabs" style="max-width:280px;">
+    <button class="weapon-tab active" id="suit-tab-hats"  onclick="switchSuitTab('hats')">🎩 Hats</button>
+    <button class="weapon-tab"        id="suit-tab-suits" onclick="switchSuitTab('suits')">👔 Suits</button>
+  </div>
+
+  <div id="suit-hats-section">
+    <div class="suit-grid" id="hat-shop-grid"></div>
+  </div>
+  <div id="suit-suits-section" style="display:none;">
+    <div class="suit-grid" id="suit-shop-grid"></div>
+  </div>
+
+  <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
+</div>
+
 <!-- ═══════════════════ LEVEL SELECT ═══════════════════ -->
 <div class="screen" id="screen-mode">
   <div class="title" style="font-size:2.5rem;">Choose Difficulty</div>
@@ -1387,6 +1408,8 @@
 <!-- ═══════════════════ GAME SCREEN ═══════════════════ -->
 <div class="screen" id="screen-game">
   <button class="pause-btn" onclick="pauseGame()" id="pause-btn">⏸</button>
+  <button id="hack-btn" onclick="toggleHacks()">🔓 Hacks: OFF</button>
+  <div id="star-buff-hud">⭐ x3 STAR BUFF!</div>
   <div class="hud">
     <span><label>Score</label><span id="score">0</span></span>
     <span id="opp-hud" style="display:none;"><label>Opponent</label><span id="opp-level-pip" class="opp-level-pip" style="display:none;"></span><span id="opp-avatar-hud" style="vertical-align:middle;"></span> <span id="opp-score">0</span></span>
