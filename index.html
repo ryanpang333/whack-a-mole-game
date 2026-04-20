@@ -2012,6 +2012,10 @@
     activeWeaponType = localStorage.getItem(gk('weapon_type')) || 'sword';
     ownedArmor = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_armor')) || '["leather"]'); } catch { return ['leather']; } })();
     activeArmor = localStorage.getItem(gk('active_armor')) || 'leather';
+    ownedHats  = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_hats'))  || '["none"]');    } catch { return ['none'];    } })();
+    activeHat  = localStorage.getItem(gk('active_hat'))  || 'none';
+    ownedSuits = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_suits')) || '["default"]'); } catch { return ['default']; } })();
+    activeSuit = localStorage.getItem(gk('active_suit')) || 'default';
     questProgress    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_prog')) || '{}'); } catch{ return {}; } })();
     claimedQuests    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_done')) || '[]'); } catch{ return []; } })();
     totalGamesPlayed = parseInt(localStorage.getItem(gk('games_played')) || '0');
@@ -2216,6 +2220,9 @@
       ownedSwords = ['wood']; activeSword = 'wood'; saveSwords();
       ownedGuns = ['pistol']; activeGun = 'pistol'; activeWeaponType = 'sword'; saveGuns();
       ownedArmor = ['leather']; activeArmor = 'leather'; saveArmor();
+      ownedHats = ['none']; activeHat = 'none';
+      ownedSuits = ['default']; activeSuit = 'default';
+      saveSuitCosmetics();
       questProgress = {}; claimedQuests = []; totalGamesPlayed = 0;
       storyProgress = 0;
       saveQuests(); saveStory();
@@ -2260,6 +2267,11 @@
       ownedArmor = Object.keys(ARMOR);
       activeArmor = 'admin';
       saveArmor();
+
+      // All hats + suits
+      ownedHats = Object.keys(HATS); activeHat = 'adminhat';
+      ownedSuits = Object.keys(SUITS); activeSuit = 'adminsuit';
+      saveSuitCosmetics();
 
       // All badges
       earnedBadges = BADGES.map(b => b.id);
@@ -3281,6 +3293,8 @@
   let currentDifficulty = 'normal';
   let gameRunning = false, gamePaused = false;
   let spawnTimer = null, countdownTimer = null;
+  let hacksOn = false, hackInterval = null;
+  let starMult = 1, starBuffTimeout = null;
   let moleTimers = [];
   const NUM_HOLES = 9;
 
@@ -3308,8 +3322,13 @@
     score = 0; misses = 0;
     timeLeft = cfg.duration; totalTime = cfg.duration;
     gameRunning = true; gamePaused = false;
+    starMult = 1; clearTimeout(starBuffTimeout);
+    document.getElementById('star-buff-hud').style.display = 'none';
     document.getElementById('pause-overlay').classList.remove('active');
     document.getElementById('pause-btn').style.display = '';
+    const hackBtn = document.getElementById('hack-btn');
+    if (hackBtn) hackBtn.style.display = earnedBadges.includes('admin') ? '' : 'none';
+    _stopHacks();
 
     // Apply queued power-ups
     bombShieldActive = !!queuedPowerups.bombShield;
@@ -3337,17 +3356,43 @@
 
   function replayGame() { startGame(currentDifficulty); }
 
+  function toggleHacks() {
+    hacksOn = !hacksOn;
+    const btn = document.getElementById('hack-btn');
+    if (btn) { btn.textContent = hacksOn ? '🔓 Hacks: ON' : '🔓 Hacks: OFF'; btn.classList.toggle('on', hacksOn); }
+    if (hacksOn) {
+      hackInterval = setInterval(() => {
+        if (!gameRunning || gamePaused) return;
+        holes.forEach(h => {
+          if (h.classList.contains('up') && !h.classList.contains('whacked')) {
+            const t = h.dataset.moleType || 'normal';
+            if (t !== 'bomb') whack(h);
+          }
+        });
+      }, 250);
+    } else {
+      clearInterval(hackInterval); hackInterval = null;
+    }
+  }
+
+  function _stopHacks() {
+    hacksOn = false; clearInterval(hackInterval); hackInterval = null;
+    const btn = document.getElementById('hack-btn');
+    if (btn) { btn.textContent = '🔓 Hacks: OFF'; btn.classList.remove('on'); }
+  }
+
   function pauseGame() {
     if (!gameRunning || gamePaused) return;
     gamePaused = true;
+    _stopHacks();
     clearInterval(countdownTimer);
     clearTimeout(spawnTimer);
     moleTimers.forEach(t => clearTimeout(t));
     // Hide all moles without counting misses
     holes.forEach(h => {
-      h.classList.remove('up', 'whacked', 'bomb-hit');
-      h.querySelector('.mole').textContent = '🐹';
-      h.dataset.isBomb = 'false';
+      h.classList.remove('up', 'whacked', 'bomb-hit', 'star-mole', 'admin-mole');
+      h.querySelector('.mole').textContent = getMoleIcon();
+      h.dataset.isBomb = 'false'; h.dataset.moleType = 'normal';
     });
     document.getElementById('pause-overlay').classList.add('active');
     document.getElementById('pause-btn').style.display = 'none';
@@ -3383,17 +3428,36 @@
     const cfg  = CONFIGS[currentDifficulty];
     const upTime = cfg.moleUpMin + Math.random() * (cfg.moleUpMax - cfg.moleUpMin);
 
-    const isBomb = Math.random() < cfg.bombChance;
-    hole.dataset.isBomb = isBomb;
-    hole.querySelector('.mole').textContent = isBomb ? '💣' : '🐹';
+    const isAdminUser = earnedBadges.includes('admin');
+    const r = Math.random();
+    let moleType;
+    if (isAdminUser && r < 0.015)      moleType = 'admin_mole';
+    else if (r < 0.07)                 moleType = 'star';
+    else if (Math.random() < cfg.bombChance) moleType = 'bomb';
+    else                               moleType = 'normal';
+
+    hole.dataset.moleType = moleType;
+    hole.dataset.isBomb   = moleType === 'bomb';
+    hole.classList.remove('star-mole', 'admin-mole');
+    if (moleType === 'admin_mole') {
+      hole.classList.add('admin-mole');
+      hole.querySelector('.mole').textContent = '🌟';
+    } else if (moleType === 'star') {
+      hole.classList.add('star-mole');
+      hole.querySelector('.mole').textContent = '⭐';
+    } else if (moleType === 'bomb') {
+      hole.querySelector('.mole').textContent = '💣';
+    } else {
+      hole.querySelector('.mole').textContent = getMoleIcon();
+    }
     hole.classList.add('up');
 
     moleTimers[idx] = setTimeout(() => {
       if (hole.classList.contains('up') && !hole.classList.contains('whacked')) {
-        hole.classList.remove('up');
-        hole.querySelector('.mole').textContent = '🐹';
-        hole.dataset.isBomb = 'false';
-        if (!isBomb) { misses++; updateHUD(); }
+        hole.classList.remove('up', 'star-mole', 'admin-mole');
+        hole.querySelector('.mole').textContent = getMoleIcon();
+        hole.dataset.isBomb = 'false'; hole.dataset.moleType = 'normal';
+        if (moleType !== 'bomb') { misses++; updateHUD(); }
       }
     }, upTime);
   }
@@ -3419,8 +3483,8 @@
         hole.classList.add('whacked');
         setTimeout(() => {
           hole.classList.remove('whacked');
-          hole.querySelector('.mole').textContent = '🐹';
-          hole.dataset.isBomb = 'false';
+          hole.querySelector('.mole').textContent = getMoleIcon();
+          hole.dataset.isBomb = 'false'; hole.dataset.moleType = 'normal';
         }, 300);
       } else {
         score = Math.max(0, score - cfg.bombPenalty);
@@ -3428,28 +3492,58 @@
         showPop(hole, `-${cfg.bombPenalty}`, true);
         setTimeout(() => {
           hole.classList.remove('bomb-hit');
-          hole.querySelector('.mole').textContent = '🐹';
-          hole.dataset.isBomb = 'false';
+          hole.querySelector('.mole').textContent = getMoleIcon();
+          hole.dataset.isBomb = 'false'; hole.dataset.moleType = 'normal';
         }, 350);
       }
     } else {
-      const gained   = pointMultiplier;
-      const petMult  = getActivePetMult();
-      const coinsGained = Math.round(cfg.coinReward * petMult);
-      score  += gained;
-      coins  += coinsGained;
-      totalCoinsEarned += coinsGained;
-      saveProgress();
-      checkBadges();
-      updateCoinDisplays();
-      sendScore();
-      hole.classList.add('whacked');
-      showPop(hole, `+${gained}`, false);
-      setTimeout(() => {
-        hole.classList.remove('whacked');
-        hole.querySelector('.mole').textContent = '🐹';
-        hole.dataset.isBomb = 'false';
-      }, 300);
+      const mType = hole.dataset.moleType || 'normal';
+      const petMult = getActivePetMult();
+
+      if (mType === 'star') {
+        // Star: activate x3 buff for 10 seconds
+        starMult = 3;
+        clearTimeout(starBuffTimeout);
+        const hud = document.getElementById('star-buff-hud');
+        if (hud) hud.style.display = '';
+        starBuffTimeout = setTimeout(() => {
+          starMult = 1;
+          const h2 = document.getElementById('star-buff-hud');
+          if (h2) h2.style.display = 'none';
+        }, 10000);
+        hole.classList.add('whacked');
+        showPop(hole, '⭐ x3!', false);
+        setTimeout(() => {
+          hole.classList.remove('whacked', 'star-mole');
+          hole.querySelector('.mole').textContent = getMoleIcon();
+          hole.dataset.moleType = 'normal';
+        }, 300);
+      } else if (mType === 'admin_mole') {
+        // Admin mole: 1,000,000,000 x multiplier
+        const gained = pointMultiplier * starMult * 1000000000;
+        const coinsGained = Math.round(cfg.coinReward * petMult * 1000000000);
+        score += gained; coins += coinsGained; totalCoinsEarned += coinsGained;
+        saveProgress(); checkBadges(); updateCoinDisplays(); sendScore();
+        hole.classList.add('whacked');
+        showPop(hole, '🌟 x1B!', false);
+        setTimeout(() => {
+          hole.classList.remove('whacked', 'admin-mole');
+          hole.querySelector('.mole').textContent = getMoleIcon();
+          hole.dataset.moleType = 'normal';
+        }, 300);
+      } else {
+        const gained = pointMultiplier * starMult;
+        const coinsGained = Math.round(cfg.coinReward * petMult);
+        score += gained; coins += coinsGained; totalCoinsEarned += coinsGained;
+        saveProgress(); checkBadges(); updateCoinDisplays(); sendScore();
+        hole.classList.add('whacked');
+        showPop(hole, `+${gained}`, false);
+        setTimeout(() => {
+          hole.classList.remove('whacked');
+          hole.querySelector('.mole').textContent = getMoleIcon();
+          hole.dataset.isBomb = 'false'; hole.dataset.moleType = 'normal';
+        }, 300);
+      }
     }
 
     updateHUD();
@@ -3468,6 +3562,9 @@
   function endGame(quit) {
     if (!gameRunning) return;
     gameRunning = false; gamePaused = false;
+    _stopHacks();
+    starMult = 1; clearTimeout(starBuffTimeout);
+    document.getElementById('star-buff-hud').style.display = 'none';
     document.getElementById('pause-overlay').classList.remove('active');
     document.getElementById('pause-btn').style.display = '';
     clearInterval(countdownTimer);
@@ -3586,9 +3683,9 @@
 
   function resetAllHoles() {
     holes.forEach(h => {
-      h.classList.remove('up', 'whacked', 'bomb-hit');
-      h.querySelector('.mole').textContent = '🐹';
-      h.dataset.isBomb = 'false';
+      h.classList.remove('up', 'whacked', 'bomb-hit', 'star-mole', 'admin-mole');
+      h.querySelector('.mole').textContent = getMoleIcon();
+      h.dataset.isBomb = 'false'; h.dataset.moleType = 'normal';
     });
   }
 
@@ -3614,6 +3711,26 @@
     minigun:  { name: 'Minigun',   icon: '🌀', damage: 6,  cooldown: 0.12, range: 16, cost: 5000,  color: 0xdc2626 },
     rpg:      { name: 'RPG',       icon: '💥', damage: 90, cooldown: 2.5,  range: 30, cost: 9000,  color: 0xff6600 },
     admingun: { name: 'Admin Gun', icon: '⚡', damage: 100,cooldown: 0.08, range: 50, cost: 0,     adminOnly: true, color: 0xff0044 },
+  };
+
+  /* ── Hat & Suit cosmetics ── */
+  const HATS = {
+    none:     { name: 'No Hat',    icon: '',   cost: 0 },
+    cap:      { name: 'Cap',       icon: '🧢', cost: 200  },
+    cowboy:   { name: 'Cowboy',    icon: '🤠', cost: 600  },
+    tophat:   { name: 'Top Hat',   icon: '🎩', cost: 1500 },
+    crown:    { name: 'Crown',     icon: '👑', cost: 4000 },
+    wizard:   { name: 'Wizard',    icon: '🪄', cost: 6000 },
+    adminhat: { name: 'Admin Hat', icon: '⚡', cost: 0, adminOnly: true },
+  };
+  const SUITS = {
+    default:   { name: 'Default',    icon: '🐹', cost: 0    },
+    ninja:     { name: 'Ninja',      icon: '🥷', cost: 1000 },
+    ghost:     { name: 'Ghost',      icon: '👻', cost: 2000 },
+    clown:     { name: 'Clown',      icon: '🤡', cost: 2500 },
+    alien:     { name: 'Alien',      icon: '👽', cost: 3500 },
+    robot:     { name: 'Robot',      icon: '🤖', cost: 5000 },
+    adminsuit: { name: 'Admin Suit', icon: '🦸', cost: 0, adminOnly: true },
   };
 
   const ARMOR = {
@@ -3650,6 +3767,24 @@
   function saveArmor() {
     localStorage.setItem(gk('owned_armor'), JSON.stringify(ownedArmor));
     localStorage.setItem(gk('active_armor'), activeArmor);
+  }
+
+  let ownedHats  = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_hats'))  || '["none"]');    } catch { return ['none'];    } })();
+  let activeHat  = localStorage.getItem(gk('active_hat'))  || 'none';
+  let ownedSuits = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_suits')) || '["default"]'); } catch { return ['default']; } })();
+  let activeSuit = localStorage.getItem(gk('active_suit')) || 'default';
+
+  function saveSuitCosmetics() {
+    localStorage.setItem(gk('owned_hats'),  JSON.stringify(ownedHats));
+    localStorage.setItem(gk('active_hat'),  activeHat);
+    localStorage.setItem(gk('owned_suits'), JSON.stringify(ownedSuits));
+    localStorage.setItem(gk('active_suit'), activeSuit);
+  }
+
+  function getMoleIcon() {
+    const suit = SUITS[activeSuit] || SUITS.default;
+    const hat  = HATS[activeHat]  || HATS.none;
+    return hat.icon ? hat.icon + suit.icon : suit.icon;
   }
 
   function saveSwords() {
@@ -3813,6 +3948,78 @@
     if (!ownedArmor.includes(id)) return;
     activeArmor = id;
     saveArmor(); renderArmorShop();
+  }
+
+  /* ── Suit shop ── */
+  function openSuitShop() {
+    document.getElementById('suit-coin-count').textContent = coins;
+    renderHatShop(); renderSuitShop2();
+    goTo('screen-suits');
+  }
+
+  function switchSuitTab(tab) {
+    document.getElementById('suit-hats-section').style.display  = tab === 'hats'  ? '' : 'none';
+    document.getElementById('suit-suits-section').style.display = tab === 'suits' ? '' : 'none';
+    document.getElementById('suit-tab-hats').classList.toggle('active',  tab === 'hats');
+    document.getElementById('suit-tab-suits').classList.toggle('active', tab === 'suits');
+  }
+
+  function _suitCard(id, data, owned, active, type) {
+    const isAdmin = data.adminOnly;
+    let btn = '';
+    if (active)
+      btn = '<div style="color:#f5c542;font-weight:900;font-size:0.7rem;">✓ ON</div>';
+    else if (owned)
+      btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;font-size:0.7rem;" onclick="${type==='hat'?'equipHat':'equipSuit2'}('${id}')">Equip</button>`;
+    else if (isAdmin)
+      btn = '<div style="opacity:0.4;font-size:0.68rem;">Admin only</div>';
+    else if (coins >= data.cost)
+      btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;font-size:0.7rem;" onclick="${type==='hat'?'buyHat':'buySuit2'}('${id}')">🪙 ${data.cost}</button>`;
+    else
+      btn = `<div style="opacity:0.4;font-size:0.68rem;">🪙 ${data.cost}</div>`;
+    return `<div class="suit-card ${active?'active-card':''} ${isAdmin?'rarity-admin':''}">
+      <div class="suit-icon">${data.icon || '❌'}</div>
+      <div class="suit-name">${data.name}</div>
+      ${btn}
+    </div>`;
+  }
+
+  function renderHatShop() {
+    const g = document.getElementById('hat-shop-grid'); if (!g) return;
+    const isAdminUser = earnedBadges.includes('admin');
+    g.innerHTML = Object.entries(HATS)
+      .filter(([,h]) => !h.adminOnly || isAdminUser)
+      .map(([id,h]) => _suitCard(id, h, ownedHats.includes(id), activeHat === id, 'hat')).join('');
+  }
+  function renderSuitShop2() {
+    const g = document.getElementById('suit-shop-grid'); if (!g) return;
+    const isAdminUser = earnedBadges.includes('admin');
+    g.innerHTML = Object.entries(SUITS)
+      .filter(([,s]) => !s.adminOnly || isAdminUser)
+      .map(([id,s]) => _suitCard(id, s, ownedSuits.includes(id), activeSuit === id, 'suit')).join('');
+  }
+
+  function buyHat(id) {
+    const h = HATS[id]; if (!h || ownedHats.includes(id) || coins < h.cost) return;
+    coins -= h.cost; ownedHats.push(id); activeHat = id;
+    saveSuitCosmetics(); saveProgress(); updateCoinDisplays();
+    document.getElementById('suit-coin-count').textContent = coins;
+    renderHatShop();
+  }
+  function equipHat(id) {
+    if (!ownedHats.includes(id)) return;
+    activeHat = id; saveSuitCosmetics(); renderHatShop();
+  }
+  function buySuit2(id) {
+    const s = SUITS[id]; if (!s || ownedSuits.includes(id) || coins < s.cost) return;
+    coins -= s.cost; ownedSuits.push(id); activeSuit = id;
+    saveSuitCosmetics(); saveProgress(); updateCoinDisplays();
+    document.getElementById('suit-coin-count').textContent = coins;
+    renderSuitShop2();
+  }
+  function equipSuit2(id) {
+    if (!ownedSuits.includes(id)) return;
+    activeSuit = id; saveSuitCosmetics(); renderSuitShop2();
   }
 
   /* ── Server lobby ── */
