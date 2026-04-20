@@ -799,7 +799,30 @@
     .quest-cat-header { font-size: 0.8rem; font-weight: 900; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 2px; }
 
     /* ── Story Mode ── */
-    .btn-story { background: #7c3aed; color: #fff; box-shadow: 0 4px 0 #4c1d95; }
+    .btn-story  { background: #7c3aed; color: #fff; box-shadow: 0 4px 0 #4c1d95; }
+    .btn-suits  { background: #0891b2; color: #fff; box-shadow: 0 4px 0 #0e7490; }
+
+    /* ── Suit shop ── */
+    #screen-suits { overflow-y: auto; }
+    .suit-coin-display { font-size: 1.1rem; font-weight: 800; }
+    .suit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap:10px; width:100%; max-width:520px; padding:4px; }
+    .suit-card { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.12); border-radius:14px; padding:12px 8px 10px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:border-color .15s; }
+    .suit-card.active-card { border-color:#f5c542; background:rgba(245,197,66,0.12); }
+    .suit-card.rarity-admin { border-color:rgba(255,0,68,0.5); }
+    .suit-icon { font-size:2rem; }
+    .suit-name { font-size:0.78rem; font-weight:800; text-align:center; }
+
+    /* ── Hack toggle btn ── */
+    #hack-btn { position:absolute; top:12px; left:12px; background:rgba(255,0,68,0.75); border:2px solid rgba(255,0,68,0.9); color:#fff; border-radius:10px; padding:6px 12px; font-size:0.85rem; font-weight:800; cursor:pointer; z-index:5; display:none; }
+    #hack-btn.on { background:rgba(255,0,68,1); box-shadow:0 0 12px rgba(255,0,68,0.7); }
+
+    /* ── Star buff HUD ── */
+    #star-buff-hud { position:absolute; top:55px; left:50%; transform:translateX(-50%); background:rgba(245,197,66,0.9); color:#1a1a1a; border-radius:10px; padding:5px 18px; font-size:0.85rem; font-weight:900; display:none; z-index:5; }
+
+    /* ── Star / admin mole highlight ── */
+    .hole.star-mole  .mole { filter: drop-shadow(0 0 6px #f5c542); }
+    .hole.admin-mole .mole { filter: drop-shadow(0 0 10px #ff0044) drop-shadow(0 0 20px #ff0044); animation: adminPulse 0.5s infinite alternate; }
+    @keyframes adminPulse { from { transform:scale(1); } to { transform:scale(1.25); } }
     .story-ch-list { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
     .story-ch-card {
       background: rgba(255,255,255,0.07); border: 2px solid rgba(255,255,255,0.13);
@@ -829,8 +852,9 @@
     .story-vs-lbl  { font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; margin-bottom: 4px; }
     .story-reward-box { background: rgba(245,197,66,0.15); border: 2px solid #f5c542; border-radius: 12px; padding: 12px 24px; text-align: center; }
 
-    /* ── Weapon tabs (Server screen) ── */
-    .weapon-tabs { display:flex; gap:6px; width:100%; max-width:300px; }
+    /* ── Weapon / Armor tabs (Server screen) ── */
+    .weapon-tabs { display:flex; gap:6px; width:100%; max-width:460px; }
+    .arena-armor-hud { position:absolute; bottom:20px; left:24px; background:rgba(0,0,0,0.55); border-radius:12px; padding:8px 14px; font-size:0.85rem; pointer-events:none; }
     .weapon-tab  {
       flex:1; padding:10px 8px; border-radius:10px; border:2px solid rgba(255,255,255,0.15);
       background:rgba(255,255,255,0.07); font-size:0.88rem; font-weight:800; cursor:pointer;
@@ -1000,6 +1024,7 @@
   <button class="btn btn-server"    onclick="openServer()">⚔️ Server</button>
   <button class="btn btn-story"     onclick="openStory()">📖 Story Mode</button>
   <button class="btn btn-quests"    onclick="openQuests()">📋 Quests</button>
+  <button class="btn btn-suits"     onclick="openSuitShop()">👔 Suit Shop</button>
 </div>
 
 <!-- ═══════════════════ POWER-UP SHOP ═══════════════════ -->
@@ -1180,6 +1205,7 @@
     <div class="weapon-tabs">
       <button class="weapon-tab active" id="tab-swords" onclick="switchWeaponTab('swords')">🗡️ Swords</button>
       <button class="weapon-tab"        id="tab-guns"   onclick="switchWeaponTab('guns')">🔫 Guns</button>
+      <button class="weapon-tab"        id="tab-armor"  onclick="switchWeaponTab('armor')">🛡️ Armor</button>
     </div>
 
     <!-- Sword shop -->
@@ -1192,8 +1218,14 @@
       <div class="sword-shop-grid" id="gun-shop-grid"></div>
     </div>
 
+    <!-- Armor shop (hidden by default) -->
+    <div id="srv-armor-section" style="display:none;">
+      <div class="sword-shop-grid" id="armor-shop-grid"></div>
+    </div>
+
     <!-- Active weapon label -->
     <div class="weapon-active-label" id="active-weapon-label">Active: 🪵 Wood Sword</div>
+    <div class="weapon-active-label" id="active-armor-label" style="margin-top:-8px;">🛡️ Armor: Leather (−10%)</div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       <button class="btn btn-primary"   onclick="hostArena()">⚔️ Create Room</button>
@@ -1255,8 +1287,9 @@
     <!-- Opponent HP (top right) -->
     <div class="arena-opp-hp">👤 Opp HP: <span id="arena-opp-hp-val">100</span></div>
 
-    <!-- Active sword (bottom right) -->
-    <div class="arena-sword-hud" id="arena-sword-hud">🪵 Wood</div>
+    <!-- Active weapon (bottom right) + armor (bottom left) -->
+    <div class="arena-sword-hud"  id="arena-sword-hud">🪵 Wood</div>
+    <div class="arena-armor-hud"  id="arena-armor-hud">🛡️ Leather</div>
 
     <!-- Controls hint -->
     <div class="arena-controls-hint">WASD — move · Space — jump · Click — swing · ESC — release mouse</div>
@@ -1565,6 +1598,7 @@
     { id:8,  name:'Shadow Master',   bot:'Shadow',    botIcon:'🌑', target:29, diff:'hard',   reward:{ coins:750 },          story:'Shadow controls the entire field with overwhelming speed and bomb barrages.' },
     { id:9,  name:'The Titan',       bot:'Titan',     botIcon:'🦾', target:34, diff:'hard',   reward:{ coins:1000 },         story:'Titan is the most powerful mole ever trained. Absolute precision required.' },
     { id:10, name:'The Final Boss',  bot:'The Admin', botIcon:'🤖', target:39, diff:'hard',   reward:{ coins:2000, xp:1000 },story:'The Admin — creator of all moles — has entered the arena. Defeat them to become a legend!' },
+    { id:11, name:'The Hacker',      bot:'H4CK3R',    botIcon:'💻', target:55, diff:'hard',   reward:{ coins:5000, xp:3000 },story:'Someone has HACKED the game. Reality is glitching — moles spawn everywhere at once. Survive the chaos!' },
   ];
 
   let storyProgress    = parseInt(localStorage.getItem(gk('story_progress')) || '0');
@@ -1583,8 +1617,9 @@
     const bar  = document.getElementById('story-progress-bar');
     const lbl  = document.getElementById('story-progress-label');
     if (!list) return;
-    if (bar) bar.style.width = (storyProgress / 10 * 100) + '%';
-    if (lbl) lbl.textContent = storyProgress + ' / 10 chapters complete';
+    const totalChs = STORY_CHAPTERS.length;
+    if (bar) bar.style.width = (storyProgress / totalChs * 100) + '%';
+    if (lbl) lbl.textContent = storyProgress + ' / ' + totalChs + ' chapters complete';
     list.innerHTML = STORY_CHAPTERS.map(ch => {
       const done    = storyProgress >= ch.id;
       const unlocked = storyProgress >= ch.id - 1;
@@ -1647,7 +1682,7 @@
     document.getElementById('str-bot-icon').textContent  = ch.botIcon;
     document.getElementById('str-bot-name').textContent  = ch.bot;
     document.getElementById('str-flavor').textContent    = won
-      ? (ch.id === 10 ? '🌟 You are the ultimate Whack-a-Mole champion!' : 'You defeated ' + ch.bot + '! Chapter ' + ch.id + ' complete.')
+      ? (ch.id === 11 ? '🖥️ You beat the Hacker! You are truly UNBEATABLE!' : ch.id === 10 ? '🌟 You defeated The Admin! But something strange is stirring...' : 'You defeated ' + ch.bot + '! Chapter ' + ch.id + ' complete.')
       : ch.bot + ' scored ' + ch.target + '. You need more than ' + ch.target + ' to win!';
 
     // XP box
@@ -1785,6 +1820,7 @@
     { id: 'story_1',       icon: '📖', name: 'Adventurer',     desc: 'Complete Story Chapter 1',  avatar: '📖',  rarity: 'common' },
     { id: 'story_5',       icon: '📚', name: 'Story Veteran',  desc: 'Complete Story Chapter 5',  avatar: '📚',  rarity: 'rare' },
     { id: 'story_10',      icon: '🏆', name: 'Story Master',   desc: 'Complete all 10 chapters',  avatar: '🏆',  rarity: 'legendary' },
+    { id: 'story_hacker', icon: '💻', name: 'System Breaker', desc: 'Defeat the Hacker (Ch. 11)', avatar: '💻',  rarity: 'admin'     },
     // Quests
     { id: 'quests_5',      icon: '✅', name: 'Quest Starter',  desc: 'Complete 5 quests',         avatar: '✅',  rarity: 'common' },
     { id: 'quests_all',    icon: '🌈', name: 'Quest Legend',   desc: 'Complete all 18 quests',    avatar: '🌈',  rarity: 'legendary' },
@@ -1826,6 +1862,7 @@
     if (id === 'story_1')        return storyProgress >= 1;
     if (id === 'story_5')        return storyProgress >= 5;
     if (id === 'story_10')       return storyProgress >= 10;
+    if (id === 'story_hacker')   return storyProgress >= 11;
     if (id === 'quests_5')       return claimedQuests.length >= 5;
     if (id === 'quests_all')     return claimedQuests.length >= QUESTS.length;
     if (id === 'pvp_win')        return (questProgress['q13'] || 0) >= 1;
@@ -1950,6 +1987,8 @@
     ownedGuns = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_guns')) || '["pistol"]'); } catch { return ['pistol']; } })();
     activeGun  = localStorage.getItem(gk('active_gun'))  || 'pistol';
     activeWeaponType = localStorage.getItem(gk('weapon_type')) || 'sword';
+    ownedArmor = (() => { try { return JSON.parse(localStorage.getItem(gk('owned_armor')) || '["leather"]'); } catch { return ['leather']; } })();
+    activeArmor = localStorage.getItem(gk('active_armor')) || 'leather';
     questProgress    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_prog')) || '{}'); } catch{ return {}; } })();
     claimedQuests    = (() => { try { return JSON.parse(localStorage.getItem(gk('quest_done')) || '[]'); } catch{ return []; } })();
     totalGamesPlayed = parseInt(localStorage.getItem(gk('games_played')) || '0');
@@ -2153,6 +2192,7 @@
       saveSkins(); applySkin('default');
       ownedSwords = ['wood']; activeSword = 'wood'; saveSwords();
       ownedGuns = ['pistol']; activeGun = 'pistol'; activeWeaponType = 'sword'; saveGuns();
+      ownedArmor = ['leather']; activeArmor = 'leather'; saveArmor();
       questProgress = {}; claimedQuests = []; totalGamesPlayed = 0;
       storyProgress = 0;
       saveQuests(); saveStory();
@@ -2193,6 +2233,11 @@
       activeWeaponType = 'gun';
       saveGuns();
 
+      // All armor
+      ownedArmor = Object.keys(ARMOR);
+      activeArmor = 'admin';
+      saveArmor();
+
       // All badges
       earnedBadges = BADGES.map(b => b.id);
       saveProfile();
@@ -2202,7 +2247,7 @@
         questProgress[q.id] = q.target;
         if (!claimedQuests.includes(q.id)) claimedQuests.push(q.id);
       });
-      storyProgress = 10;
+      storyProgress = 11;
       totalGamesPlayed = Math.max(totalGamesPlayed, 100);
       saveQuests();
       localStorage.setItem(gk('story_progress'), storyProgress);
@@ -3548,6 +3593,16 @@
     admingun: { name: 'Admin Gun', icon: '⚡', damage: 100,cooldown: 0.08, range: 50, cost: 0,     adminOnly: true, color: 0xff0044 },
   };
 
+  const ARMOR = {
+    leather:   { name: 'Leather',   icon: '🟫', defense: 0.10, cost: 0,     color: '#8B6040' },
+    chainmail: { name: 'Chainmail', icon: '🔗', defense: 0.20, cost: 300,   color: '#9ca3af' },
+    iron:      { name: 'Iron',      icon: '🔩', defense: 0.30, cost: 900,   color: '#b0c4de' },
+    gold:      { name: 'Gold',      icon: '🥇', defense: 0.25, cost: 1500,  color: '#FFD700' },
+    diamond:   { name: 'Diamond',   icon: '💎', defense: 0.40, cost: 4500,  color: '#4dd0e1' },
+    netherite: { name: 'Netherite', icon: '🖤', defense: 0.55, cost: 12000, color: '#4a3650' },
+    admin:     { name: 'Admin',     icon: '⚡', defense: 0.90, cost: 0,     adminOnly: true, color: '#ff0044' },
+  };
+
   let ownedSwords = (() => {
     try { return JSON.parse(localStorage.getItem(gk('owned_swords')) || '["wood"]'); }
     catch { return ['wood']; }
@@ -3562,6 +3617,17 @@
 
   // 'sword' or 'gun' — whichever was last equipped
   let activeWeaponType = localStorage.getItem(gk('weapon_type')) || 'sword';
+
+  let ownedArmor = (() => {
+    try { return JSON.parse(localStorage.getItem(gk('owned_armor')) || '["leather"]'); }
+    catch { return ['leather']; }
+  })();
+  let activeArmor = localStorage.getItem(gk('active_armor')) || 'leather';
+
+  function saveArmor() {
+    localStorage.setItem(gk('owned_armor'), JSON.stringify(ownedArmor));
+    localStorage.setItem(gk('active_armor'), activeArmor);
+  }
 
   function saveSwords() {
     localStorage.setItem(gk('owned_swords'), JSON.stringify(ownedSwords));
@@ -3635,8 +3701,10 @@
   function switchWeaponTab(tab) {
     document.getElementById('srv-swords-section').style.display = tab === 'swords' ? '' : 'none';
     document.getElementById('srv-guns-section').style.display   = tab === 'guns'   ? '' : 'none';
+    document.getElementById('srv-armor-section').style.display  = tab === 'armor'  ? '' : 'none';
     document.getElementById('tab-swords').classList.toggle('active', tab === 'swords');
     document.getElementById('tab-guns').classList.toggle('active', tab === 'guns');
+    document.getElementById('tab-armor').classList.toggle('active', tab === 'armor');
   }
 
   function buySword(id) {
@@ -3669,13 +3737,68 @@
     saveGuns(); renderSwordShop(); renderGunShop();
   }
 
+  function renderArmorShop() {
+    const grid = document.getElementById('armor-shop-grid');
+    if (!grid) return;
+    const isAdminUser = earnedBadges.includes('admin');
+    grid.innerHTML = Object.entries(ARMOR)
+      .filter(([, a]) => !a.adminOnly || isAdminUser)
+      .map(([id, a]) => {
+        const owned  = ownedArmor.includes(id);
+        const active = activeArmor === id;
+        const isAdmin = a.adminOnly;
+        let btn = '';
+        if (active)
+          btn = '<span style="color:#f5c542;font-weight:900;font-size:0.72rem;">✓ EQUIPPED</span>';
+        else if (owned)
+          btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;" onclick="equipArmor('${id}')">Equip</button>`;
+        else if (isAdmin)
+          btn = '<span style="opacity:0.4;font-size:0.7rem;">Admin only</span>';
+        else if (coins >= a.cost)
+          btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;" onclick="buyArmor('${id}')">🪙 ${a.cost}</button>`;
+        else
+          btn = `<span style="opacity:0.4;font-size:0.7rem;">🪙 ${a.cost}</span>`;
+        const rc = isAdmin ? 'rarity-admin' : '';
+        return `<div class="sword-card ${rc}" style="${active ? 'border-color:#f5c542;' : ''}">
+          <div style="font-size:1.8rem;">${a.icon}</div>
+          <div class="sword-name">${a.name}</div>
+          <div class="sword-stats">−${Math.round(a.defense * 100)}% damage</div>
+          ${btn}
+        </div>`;
+      }).join('');
+    _updateActiveArmorLabel();
+  }
+
+  function _updateActiveArmorLabel() {
+    const el = document.getElementById('active-armor-label');
+    if (!el) return;
+    const a = ARMOR[activeArmor] || ARMOR.leather;
+    el.textContent = `🛡️ Armor: ${a.name} (−${Math.round(a.defense * 100)}% dmg)`;
+  }
+
+  function buyArmor(id) {
+    const a = ARMOR[id];
+    if (!a || ownedArmor.includes(id) || coins < a.cost) return;
+    coins -= a.cost;
+    ownedArmor.push(id); activeArmor = id;
+    saveArmor(); saveProgress(); updateCoinDisplays();
+    document.getElementById('srv-coin-count').textContent = coins;
+    renderArmorShop();
+  }
+
+  function equipArmor(id) {
+    if (!ownedArmor.includes(id)) return;
+    activeArmor = id;
+    saveArmor(); renderArmorShop();
+  }
+
   /* ── Server lobby ── */
   let _arenaPeer = null, _arenaConn = null, _arenaIsHost = false, _arenaInst = null;
 
   function openServer() {
     const el = document.getElementById('srv-coin-count');
     if (el) el.textContent = coins;
-    renderSwordShop(); renderGunShop();
+    renderSwordShop(); renderGunShop(); renderArmorShop();
     showSrvPanel('srv-hub');
     goTo('screen-server');
   }
@@ -3865,6 +3988,8 @@
     const myWeapon  = isGun ? (GUNS[activeGun] || GUNS.pistol) : (SWORDS[activeSword] || SWORDS.wood);
     // Keep legacy alias so existing code still compiles
     const mySword   = myWeapon;
+    // Resolve active armor
+    const myArmorData = ARMOR[activeArmor] || ARMOR.leather;
     let swingCooldown = 0, invincible = 0;
     let isDead = false, respawnTimer = 0, gameOver = false;
     let posTimer = 0;
@@ -3931,6 +4056,8 @@
     const clickPrompt = document.getElementById('arena-clickprompt');
 
     if (swordHud) swordHud.textContent = myWeapon.icon + ' ' + myWeapon.name + (isGun ? ' 🔫' : ' 🗡️');
+    const armorHud = document.getElementById('arena-armor-hud');
+    if (armorHud) armorHud.textContent = myArmorData.icon + ' ' + myArmorData.name + ' −' + Math.round(myArmorData.defense * 100) + '%';
     function updateHud() {
       const pct = Math.max(0, myHp);
       if (hpFill) { hpFill.style.width = pct + '%'; hpFill.style.background = myHp > 50 ? '#22c55e' : myHp > 25 ? '#f59e0b' : '#ef4444'; }
@@ -3999,6 +4126,8 @@
           const facing = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
           if (facing.dot(toOpp) > 0.3) {
             if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: myWeapon.damage });
+            oppHp = Math.max(0, oppHp - myWeapon.damage);
+            updateHud(); refreshOppHpBar();
           }
         }
       }
@@ -4057,11 +4186,19 @@
           oppBodyMat.color.setHex(0xffffff);
           setTimeout(() => oppBodyMat.color.setHex(oppSwordData.color || 0x4a9eff), 110);
           break;
-        case 'arena-hit':
+        case 'arena-hit': {
           if (invincible > 0) break;
-          myHp = Math.max(0, myHp - (data.damage || 10));
+          const rawDmg = data.damage || 10;
+          const reduced = Math.max(1, Math.round(rawDmg * (1 - myArmorData.defense)));
+          myHp = Math.max(0, myHp - reduced);
           updateHud();
+          if (_arenaConn) _arenaConn.send({ type: 'arena-hp', hp: myHp });
           if (myHp <= 0) myDie();
+          break;
+        }
+        case 'arena-hp':
+          oppHp = Math.max(0, data.hp);
+          updateHud(); refreshOppHpBar();
           break;
         case 'arena-died':
           myKills++; oppHp = 100;
@@ -4139,6 +4276,8 @@
         if (!b.hit && b.mesh.position.distanceTo(oppGroup.position) < 1.2) {
           b.hit = true;
           if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: myWeapon.damage });
+          oppHp = Math.max(0, oppHp - myWeapon.damage);
+          updateHud(); refreshOppHpBar();
           scene.remove(b.mesh);
           bullets.splice(i, 1);
           continue;
