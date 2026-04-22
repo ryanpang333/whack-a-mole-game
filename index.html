@@ -4633,8 +4633,8 @@
 
     /* ── Scene ── */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x110808);
-    scene.fog = new THREE.FogExp2(0x220d0d, 0.035);
+    scene.background = new THREE.Color(0x9bb8cc);
+    scene.fog = new THREE.FogExp2(0xaabfcc, 0.018);
 
     /* ── Camera ── */
     const EYE_H = 1.7;
@@ -4642,9 +4642,13 @@
     camera.rotation.order = 'YXZ';
 
     /* ── Lights ── */
-    scene.add(new THREE.AmbientLight(0xffeedd, 0.35));
-    [[0,5,0,2,16],[10,3,10,1.5,12],[-10,3,-10,1.5,12],[10,3,-10,1.5,12],[-10,3,10,1.5,12]].forEach(([x,y,z,i,r]) => {
-      const l = new THREE.PointLight(0xff6622, i, r);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const arenaDir = new THREE.DirectionalLight(0xfff8ee, 1.2);
+    arenaDir.position.set(8, 18, 6);
+    arenaDir.castShadow = true;
+    scene.add(arenaDir);
+    [[0,6,0,1.2,20],[12,3,12,0.8,14],[-12,3,-12,0.8,14],[12,3,-12,0.8,14],[-12,3,12,0.8,14]].forEach(([x,y,z,i,r]) => {
+      const l = new THREE.PointLight(0xffffff, i, r);
       l.position.set(x, y, z);
       scene.add(l);
     });
@@ -4652,7 +4656,7 @@
     /* ── Floor ── */
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(40, 40),
-      new THREE.MeshLambertMaterial({ color: 0x444455 })
+      new THREE.MeshLambertMaterial({ color: 0x8899aa })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -4715,8 +4719,17 @@
     let swingCooldown = 0, invincible = 0;
     let isDead = false, respawnTimer = 0, gameOver = false;
     let posTimer = 0;
-    // Bullets array for gun mode
-    const bullets = []; // { mesh, vel, life }
+    const bullets = [];
+
+    // Slide / crouch
+    const CROUCH_EYE  = 0.85;
+    let crouching     = false;
+    let sliding       = false;
+    let slideVX       = 0, slideVZ = 0;
+    let slideTimer    = 0;
+    const SLIDE_DUR   = 0.65;
+    const SLIDE_SPEED = 14;
+    let currentEyeH   = EYE_H;
 
     /* ── Opponent state + 3D model ── */
     const oppSpawn = new THREE.Vector3(0, 0, side === 'red' ? -14 : 14);
@@ -4871,7 +4884,28 @@
     const onKD = e => {
       keys[e.code] = true;
       if (MOVE_KEYS.has(e.code)) e.preventDefault();
-      if (e.code === 'Space' && playerPos.y <= 0.01 && !isDead && !gameOver) velY = JUMP_FORCE;
+      if (e.code === 'Space' && playerPos.y <= 0.01 && !isDead && !gameOver) {
+        if (sliding) { sliding = false; crouching = false; } // cancel slide on jump
+        velY = JUMP_FORCE;
+      }
+      if (e.code === 'KeyC' && !isDead && !gameOver && playerPos.y <= 0.01) {
+        if (sliding) return; // already sliding, ignore
+        const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
+        const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
+        const moving = fwd !== 0 || strafe !== 0;
+        if (moving) {
+          // Slide in current movement direction
+          const cy = Math.cos(yaw), sy = Math.sin(yaw);
+          let dx = (-sy*fwd + cy*strafe), dz = (-cy*fwd - sy*strafe);
+          const mag = Math.sqrt(dx*dx + dz*dz);
+          if (mag > 0) { dx /= mag; dz /= mag; }
+          slideVX = dx * SLIDE_SPEED; slideVZ = dz * SLIDE_SPEED;
+          sliding = true; slideTimer = SLIDE_DUR; crouching = false;
+        } else {
+          // Toggle crouch
+          crouching = !crouching;
+        }
+      }
     };
     const onKU = e => { keys[e.code] = false; };
     window.addEventListener('keydown', onKD);
@@ -5025,16 +5059,28 @@
         if (invincible > 0)    invincible    -= dt;
         if (mouseHeld && swingCooldown <= 0) doSwing();
 
-        // WASD movement
-        const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
-        const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
-        if (fwd !== 0 || strafe !== 0) {
-          const cy = Math.cos(yaw), sy = Math.sin(yaw);
-          let dx = (-sy*fwd + cy*strafe), dz = (-cy*fwd - sy*strafe);
-          const mag = Math.sqrt(dx*dx + dz*dz);
-          if (mag > 0) { dx /= mag; dz /= mag; }
-          playerPos.x = Math.max(-19, Math.min(19, playerPos.x + dx*SPEED*dt));
-          playerPos.z = Math.max(-19, Math.min(19, playerPos.z + dz*SPEED*dt));
+        // Slide tick
+        if (sliding) {
+          slideTimer -= dt;
+          const t = Math.max(0, slideTimer / SLIDE_DUR); // 1→0 decel
+          playerPos.x = Math.max(-19, Math.min(19, playerPos.x + slideVX * t * dt));
+          playerPos.z = Math.max(-19, Math.min(19, playerPos.z + slideVZ * t * dt));
+          if (slideTimer <= 0) { sliding = false; }
+        }
+
+        // WASD movement (suppressed while sliding)
+        if (!sliding) {
+          const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
+          const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
+          if (fwd !== 0 || strafe !== 0) {
+            const cy = Math.cos(yaw), sy = Math.sin(yaw);
+            let dx = (-sy*fwd + cy*strafe), dz = (-cy*fwd - sy*strafe);
+            const mag = Math.sqrt(dx*dx + dz*dz);
+            if (mag > 0) { dx /= mag; dz /= mag; }
+            const spd = crouching ? SPEED * 0.5 : SPEED;
+            playerPos.x = Math.max(-19, Math.min(19, playerPos.x + dx*spd*dt));
+            playerPos.z = Math.max(-19, Math.min(19, playerPos.z + dz*spd*dt));
+          }
         }
 
         // Jump / gravity
@@ -5057,6 +5103,7 @@
         if (respawnTimer <= 0) {
           isDead = false; myHp = 100; invincible = 2;
           playerPos.copy(mySpawn); playerPos.y = 0; yaw = myYawInit; velY = 0;
+          crouching = false; sliding = false;
           updateHud();
           if (deathOverlay) deathOverlay.style.display = 'none';
           if (_arenaConn) _arenaConn.send({ type: 'arena-respawn' });
@@ -5090,7 +5137,10 @@
         if (b.life <= 0) { scene.remove(b.mesh); bullets.splice(i, 1); }
       }
 
-      camera.position.set(playerPos.x, playerPos.y + EYE_H, playerPos.z);
+      // Interpolate eye height for smooth crouch/slide
+      const targetEyeH = (crouching || sliding) ? CROUCH_EYE : EYE_H;
+      currentEyeH += (targetEyeH - currentEyeH) * Math.min(1, dt * 14);
+      camera.position.set(playerPos.x, playerPos.y + currentEyeH, playerPos.z);
       camera.rotation.y = yaw; camera.rotation.x = pitch;
       renderer.render(scene, camera);
     }
