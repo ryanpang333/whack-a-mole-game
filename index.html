@@ -2579,6 +2579,10 @@
       ownedSuits = Object.keys(SUITS); activeSuit = 'adminsuit';
       saveSuitCosmetics();
 
+      // All songs
+      ownedSongs = Object.keys(SONGS); activeSong = 'admin';
+      saveSongs(); playMusic();
+
       // All badges
       earnedBadges = BADGES.map(b => b.id);
       saveProfile();
