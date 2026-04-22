@@ -800,8 +800,40 @@
 
     /* ── Story Mode ── */
     .btn-story  { background: #7c3aed; color: #fff; box-shadow: 0 4px 0 #4c1d95; }
-    .btn-suits    { background: #0891b2; color: #fff; box-shadow: 0 4px 0 #0e7490; }
-    .btn-coinshop { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; box-shadow:0 4px 0 #14532d; }
+    .btn-suits      { background: #0891b2; color: #fff; box-shadow: 0 4px 0 #0e7490; }
+    .btn-coinshop   { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; box-shadow:0 4px 0 #14532d; }
+    .btn-minigames  { background: linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; box-shadow:0 4px 0 #4c1d95; }
+
+    /* ── Minigames hub ── */
+    .mg-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; width:100%; max-width:560px; }
+    .mg-card { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.12); border-radius:16px;
+               padding:18px 12px; display:flex; flex-direction:column; align-items:center; gap:8px;
+               cursor:pointer; transition:transform .15s, background .15s; }
+    .mg-card:hover { transform:translateY(-4px); background:rgba(255,255,255,0.14); }
+    .mg-card.mg-locked { opacity:0.4; cursor:not-allowed; }
+    .mg-card .mg-icon  { font-size:2.6rem; }
+    .mg-card .mg-name  { font-weight:900; font-size:0.95rem; text-align:center; }
+    .mg-card .mg-desc  { font-size:0.72rem; opacity:0.65; text-align:center; line-height:1.3; }
+    .mg-card .mg-tag   { font-size:0.68rem; padding:2px 8px; border-radius:20px; font-weight:700; }
+    .mg-tag.solo  { background:#7c3aed; color:#fff; }
+    .mg-tag.multi { background:#0891b2; color:#fff; }
+    .mg-tag.soon  { background:#374151; color:#9ca3af; }
+
+    /* ── Minigame play screen ── */
+    #screen-mg-play .mg-hud { display:flex; gap:18px; justify-content:center; align-items:center; flex-wrap:wrap; font-size:1rem; font-weight:700; }
+    #screen-mg-play .mg-hud span label { opacity:0.6; font-size:0.75rem; display:block; }
+    #screen-mg-play .mg-status { font-size:1.4rem; font-weight:900; min-height:2rem; text-align:center; color:#f5c542; }
+    .mg-grid-play { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:340px; }
+    .mg-grid-play .hole { width:100%; aspect-ratio:1; border-radius:50% 50% 40% 40%; background:rgba(0,0,0,0.35);
+                          border:3px solid rgba(255,255,255,0.1); cursor:pointer; font-size:2.4rem;
+                          display:flex; align-items:center; justify-content:center; transition:transform .1s; }
+    .mg-grid-play .hole.up   { transform:translateY(-10px); }
+    .mg-grid-play .hole.bomb { border-color:rgba(255,80,80,0.5); }
+
+    /* ── Minigame result ── */
+    #screen-mg-result .mg-res-score { font-size:3.5rem; font-weight:900; color:#f5c542; }
+    #screen-mg-result .mg-res-label { font-size:0.9rem; opacity:0.6; }
+    #screen-mg-result .mg-res-grade { font-size:1.8rem; font-weight:900; margin:4px 0; }
 
     /* ── Coin shop ── */
     #screen-coinshop { overflow-y:auto; }
@@ -861,12 +893,25 @@
     /* ── Suit shop ── */
     #screen-suits { overflow-y: auto; }
     .suit-coin-display { font-size: 1.1rem; font-weight: 800; }
-    .suit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap:10px; width:100%; max-width:520px; padding:4px; }
-    .suit-card { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.12); border-radius:14px; padding:12px 8px 10px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:border-color .15s; }
-    .suit-card.active-card { border-color:#f5c542; background:rgba(245,197,66,0.12); }
-    .suit-card.rarity-admin { border-color:rgba(255,0,68,0.5); }
-    .suit-icon { font-size:2rem; }
-    .suit-name { font-size:0.78rem; font-weight:800; text-align:center; }
+    .suit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap:12px; width:100%; max-width:560px; padding:4px; }
+    .suit-card { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.12); border-radius:16px; padding:16px 10px 12px; display:flex; flex-direction:column; align-items:center; gap:7px; transition:border-color .15s, background .15s; position:relative; }
+    .suit-card.active-card  { border-color:#f5c542; background:rgba(245,197,66,0.1); }
+    .suit-card.rarity-uncommon { border-color:rgba(74,222,128,0.45); }
+    .suit-card.rarity-rare     { border-color:rgba(74,158,255,0.5); }
+    .suit-card.rarity-epic     { border-color:rgba(168,85,247,0.55); }
+    .suit-card.rarity-legendary{ border-color:rgba(245,197,66,0.7); }
+    .suit-card.rarity-admin    { border-color:rgba(255,0,68,0.6); }
+    .suit-rarity-pip { font-size:0.6rem; font-weight:900; padding:2px 8px; border-radius:6px; text-transform:uppercase; margin-bottom:1px; }
+    .pip-free      { background:rgba(255,255,255,0.1);  color:#aaa; }
+    .pip-uncommon  { background:rgba(74,222,128,0.2);   color:#4ade80; }
+    .pip-rare      { background:rgba(74,158,255,0.2);   color:#93c5fd; }
+    .pip-epic      { background:rgba(168,85,247,0.2);   color:#d8b4fe; }
+    .pip-legendary { background:rgba(245,197,66,0.2);   color:#f5c542; }
+    .pip-admin     { background:rgba(255,0,68,0.2);     color:#ff6b8a; }
+    .suit-icon { font-size:2.4rem; }
+    .suit-name { font-size:0.82rem; font-weight:800; text-align:center; }
+    .suit-price-tag { font-size:0.78rem; color:#f5c542; font-weight:700; }
+    .suit-owned-tag { font-size:0.72rem; color:#4ade80; font-weight:700; }
 
     /* ── Hack toggle btn ── */
     #hack-btn { position:absolute; top:12px; left:12px; background:rgba(255,0,68,0.75); border:2px solid rgba(255,0,68,0.9); color:#fff; border-radius:10px; padding:6px 12px; font-size:0.85rem; font-weight:800; cursor:pointer; z-index:5; display:none; }
@@ -1080,8 +1125,9 @@
   <button class="btn btn-server"    onclick="openServer()">⚔️ Server</button>
   <button class="btn btn-story"     onclick="openStory()">📖 Story Mode</button>
   <button class="btn btn-quests"    onclick="openQuests()">📋 Quests</button>
-  <button class="btn btn-suits"     onclick="openSuitShop()">👔 Suit Shop</button>
-  <button class="btn btn-coinshop"  onclick="openCoinShop()">💳 Buy Coins</button>
+  <button class="btn btn-suits"      onclick="openSuitShop()">👔 Suit Shop</button>
+  <button class="btn btn-coinshop"   onclick="openCoinShop()">💳 Buy Coins</button>
+  <button class="btn btn-minigames"  onclick="openMinigames()">🎮 Minigames</button>
 </div>
 
 <!-- ═══════════════════ POWER-UP SHOP ═══════════════════ -->
@@ -1507,7 +1553,8 @@
 <div class="screen screen-scroll" id="screen-suits">
   <div style="font-size:3rem;">👔</div>
   <div class="title" style="font-size:2rem;">Suit Shop</div>
-  <div class="suit-coin-display">🪙 <span id="suit-coin-count">0</span></div>
+  <p style="opacity:0.55;font-size:0.82rem;text-align:center;margin:0;">Earn coins in-game to unlock better suits and hats!</p>
+  <div class="suit-coin-display">🪙 <span id="suit-coin-count">0</span> coins</div>
 
   <div class="weapon-tabs" style="max-width:280px;">
     <button class="weapon-tab active" id="suit-tab-hats"  onclick="switchSuitTab('hats')">🎩 Hats</button>
@@ -1522,6 +1569,43 @@
   </div>
 
   <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
+</div>
+
+<!-- ═══════════════════ MINIGAMES HUB ═══════════════════ -->
+<div class="screen screen-scroll" id="screen-minigames">
+  <div style="font-size:3rem;">🎮</div>
+  <div class="title" style="font-size:2rem;">Minigames</div>
+  <p style="opacity:0.55;font-size:0.82rem;text-align:center;max-width:400px;margin:0;">
+    Quick solo challenges &amp; multiplayer showdowns!
+  </p>
+  <div class="mg-grid" id="mg-hub-grid"><!-- rendered by JS --></div>
+  <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
+</div>
+
+<!-- ═══════════════════ MINIGAME PLAY ═══════════════════ -->
+<div class="screen" id="screen-mg-play">
+  <div class="title" style="font-size:1.5rem;margin-bottom:4px;" id="mg-play-title">Minigame</div>
+  <div class="mg-hud">
+    <span><label>Score</label><span id="mg-score">0</span></span>
+    <span><label>Time</label><span id="mg-timer">10</span>s</span>
+    <span id="mg-lives-wrap"><label>Lives</label><span id="mg-lives">3</span></span>
+  </div>
+  <div class="mg-status" id="mg-status">&nbsp;</div>
+  <div class="mg-grid-play" id="mg-grid-play"></div>
+  <button class="btn btn-back" style="margin-top:10px;" onclick="quitMinigame()">Quit</button>
+</div>
+
+<!-- ═══════════════════ MINIGAME RESULT ═══════════════════ -->
+<div class="screen" id="screen-mg-result">
+  <div id="mg-res-icon" style="font-size:4rem;">🏆</div>
+  <div class="title" id="mg-res-title" style="font-size:2rem;">Nice!</div>
+  <div class="mg-res-score" id="mg-res-score">0</div>
+  <div class="mg-res-label" id="mg-res-label">points</div>
+  <div class="mg-res-grade" id="mg-res-grade"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px;">
+    <button class="btn btn-primary"   onclick="openMinigames()">Play Again</button>
+    <button class="btn btn-back"      onclick="goTo('screen-home')">← Home</button>
+  </div>
 </div>
 
 <!-- ═══════════════════ LEVEL SELECT ═══════════════════ -->
@@ -4193,22 +4277,43 @@
     document.getElementById('suit-tab-suits').classList.toggle('active', tab === 'suits');
   }
 
+  function _suitRarity(data) {
+    if (data.adminOnly)   return { key:'admin',     label:'Admin' };
+    if (data.cost === 0)  return { key:'free',      label:'Free' };
+    if (data.cost <= 800) return { key:'uncommon',  label:'Uncommon' };
+    if (data.cost <= 2500)return { key:'rare',      label:'Rare' };
+    if (data.cost <= 5000)return { key:'epic',      label:'Epic' };
+    return                       { key:'legendary', label:'Legendary' };
+  }
+
   function _suitCard(id, data, owned, active, type) {
     const isAdmin = data.adminOnly;
+    const rar = _suitRarity(data);
+    const canAfford = coins >= data.cost;
+
     let btn = '';
     if (active)
-      btn = '<div style="color:#f5c542;font-weight:900;font-size:0.7rem;">✓ ON</div>';
+      btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;font-size:0.72rem;" disabled>✓ Equipped</button>`;
     else if (owned)
-      btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;font-size:0.7rem;" onclick="${type==='hat'?'equipHat':'equipSuit2'}('${id}')">Equip</button>`;
+      btn = `<button class="btn sword-btn" style="background:#4a9eff;color:#fff;font-size:0.72rem;" onclick="${type==='hat'?'equipHat':'equipSuit2'}('${id}')">Equip</button>`;
     else if (isAdmin)
-      btn = '<div style="opacity:0.4;font-size:0.68rem;">Admin only</div>';
-    else if (coins >= data.cost)
-      btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;font-size:0.7rem;" onclick="${type==='hat'?'buyHat':'buySuit2'}('${id}')">🪙 ${data.cost}</button>`;
+      btn = `<button class="btn sword-btn" style="opacity:0.4;font-size:0.7rem;" disabled>🔒 Admin only</button>`;
+    else if (canAfford)
+      btn = `<button class="btn sword-btn" style="background:#f5c542;color:#1a1a1a;font-size:0.72rem;" onclick="${type==='hat'?'buyHat':'buySuit2'}('${id}')">Buy — 🪙 ${data.cost.toLocaleString()}</button>`;
     else
-      btn = `<div style="opacity:0.4;font-size:0.68rem;">🪙 ${data.cost}</div>`;
-    return `<div class="suit-card ${active?'active-card':''} ${isAdmin?'rarity-admin':''}">
+      btn = `<button class="btn sword-btn" style="opacity:0.35;font-size:0.72rem;" disabled>🔒 🪙 ${data.cost.toLocaleString()}</button>`;
+
+    const priceLine = owned
+      ? `<div class="suit-owned-tag">✓ Owned</div>`
+      : isAdmin
+        ? `<div class="suit-price-tag" style="color:#ff6b8a;">Admin only</div>`
+        : `<div class="suit-price-tag">🪙 ${data.cost.toLocaleString()}</div>`;
+
+    return `<div class="suit-card ${active?'active-card':''} rarity-${rar.key}">
+      <span class="suit-rarity-pip pip-${rar.key}">${rar.label}</span>
       <div class="suit-icon">${data.icon || '❌'}</div>
       <div class="suit-name">${data.name}</div>
+      ${priceLine}
       ${btn}
     </div>`;
   }
@@ -5199,6 +5304,316 @@
     spr.scale.set(6.2, 2.33, 1);
     scene.add(spr);
   }
+
+  /* ════════════════════════════════════════════════
+     MINIGAMES
+  ════════════════════════════════════════════════ */
+  const MG_LIST = [
+    { id:'blitz',   name:'Mole Blitz',    icon:'⚡', desc:'Hit as many moles as you can in 10 seconds!',      tag:'solo',  fn:'_mgBlitz'   },
+    { id:'dodge',   name:'Bomb Dodge',    icon:'💣', desc:'3 lives — avoid bombs, hit every mole you can!',   tag:'solo',  fn:'_mgDodge'   },
+    { id:'sniper',  name:'Sniper Mode',   icon:'🎯', desc:'Moles only appear for 0.35 seconds. Be fast!',     tag:'solo',  fn:'_mgSniper'  },
+    { id:'memory',  name:'Memory Mole',   icon:'🧠', desc:'Watch the sequence, then repeat it!',              tag:'solo',  fn:'_mgMemory'  },
+    { id:'race',    name:'Mole Race',     icon:'🏁', desc:'First to 20 hits wins — coming soon!',             tag:'multi', fn:null         },
+    { id:'death',   name:'Sudden Death',  icon:'💀', desc:'One bomb ends it all — coming soon!',              tag:'multi', fn:null         },
+  ];
+
+  let _mgActive = null; // current game id
+  let _mgScore  = 0;
+  let _mgLives  = 3;
+  let _mgTimerVal = 10;
+  let _mgTimerInterval = null;
+  let _mgRunning = false;
+
+  function openMinigames() {
+    const g = document.getElementById('mg-hub-grid');
+    g.innerHTML = MG_LIST.map(mg => {
+      const locked = mg.fn === null;
+      return `<div class="mg-card${locked?' mg-locked':''}" ${locked?'':'onclick="startMinigame(\''+mg.id+'\')"'}>
+        <div class="mg-icon">${mg.icon}</div>
+        <div class="mg-name">${mg.name}</div>
+        <div class="mg-desc">${mg.desc}</div>
+        <span class="mg-tag ${locked?'soon':mg.tag}">${locked?'Soon':mg.tag==='solo'?'Solo':'Multiplayer'}</span>
+      </div>`;
+    }).join('');
+    goTo('screen-minigames');
+  }
+
+  function startMinigame(id) {
+    const mg = MG_LIST.find(m => m.id === id);
+    if (!mg || !mg.fn) return;
+    _mgActive  = id;
+    _mgScore   = 0;
+    _mgLives   = 3;
+    _mgRunning = false;
+    _mgClearTimer();
+
+    document.getElementById('mg-play-title').textContent = mg.icon + ' ' + mg.name;
+    document.getElementById('mg-score').textContent  = '0';
+    document.getElementById('mg-timer').textContent  = '10';
+    document.getElementById('mg-status').textContent = '';
+    document.getElementById('mg-lives-wrap').style.display = id === 'dodge' ? '' : 'none';
+    document.getElementById('mg-lives').textContent  = '3';
+
+    _mgBuildGrid();
+    goTo('screen-mg-play');
+
+    // short delay so screen transition finishes before game starts
+    setTimeout(() => { window[mg.fn] && window[mg.fn](); }, 300);
+  }
+
+  function _mgBuildGrid() {
+    const g = document.getElementById('mg-grid-play');
+    g.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const h = document.createElement('div');
+      h.className = 'hole';
+      h.dataset.idx = i;
+      g.appendChild(h);
+    }
+  }
+
+  function _mgHoles() { return Array.from(document.querySelectorAll('#mg-grid-play .hole')); }
+
+  function _mgClearTimer() {
+    if (_mgTimerInterval) { clearInterval(_mgTimerInterval); _mgTimerInterval = null; }
+  }
+
+  function _mgSetStatus(txt) {
+    const el = document.getElementById('mg-status');
+    if (el) el.textContent = txt;
+  }
+
+  function _mgUpdateScore() { document.getElementById('mg-score').textContent = _mgScore; }
+  function _mgUpdateLives() { document.getElementById('mg-lives').textContent = _mgLives; }
+  function _mgUpdateTimer(v) { document.getElementById('mg-timer').textContent = v; }
+
+  function _mgShowMole(hole, type, duration, onHit, onMiss) {
+    if (!_mgRunning) return;
+    hole.dataset.type = type || 'normal';
+    hole.innerHTML    = type === 'bomb' ? '💣' : getMoleIcon();
+    hole.classList.add('up');
+    if (type === 'bomb') hole.classList.add('bomb'); else hole.classList.remove('bomb');
+    hole.onclick = () => {
+      if (!_mgRunning) return;
+      hole.classList.remove('up', 'bomb');
+      hole.innerHTML = '';
+      hole.onclick = null;
+      if (onHit) onHit(hole);
+    };
+    const miss = setTimeout(() => {
+      if (!hole.classList.contains('up')) return;
+      hole.classList.remove('up', 'bomb');
+      hole.innerHTML = '';
+      hole.onclick = null;
+      if (onMiss) onMiss(hole);
+    }, duration);
+    hole._mgMissTimer = miss;
+  }
+
+  function _mgEndGame(icon, title, grade) {
+    _mgRunning = false;
+    _mgClearTimer();
+    _mgHoles().forEach(h => {
+      if (h._mgMissTimer) clearTimeout(h._mgMissTimer);
+      h.classList.remove('up','bomb');
+      h.innerHTML = '';
+      h.onclick = null;
+    });
+    document.getElementById('mg-res-icon').textContent  = icon  || '🏆';
+    document.getElementById('mg-res-title').textContent = title || 'Done!';
+    document.getElementById('mg-res-score').textContent = _mgScore;
+    document.getElementById('mg-res-label').textContent = 'points';
+    document.getElementById('mg-res-grade').textContent = grade || '';
+    goTo('screen-mg-result');
+  }
+
+  function quitMinigame() {
+    _mgRunning = false;
+    _mgClearTimer();
+    _mgHoles().forEach(h => {
+      if (h._mgMissTimer) clearTimeout(h._mgMissTimer);
+      h.classList.remove('up','bomb');
+      h.innerHTML = '';
+      h.onclick = null;
+    });
+    openMinigames();
+  }
+
+  /* ── Blitz: hit as many as possible in 10s ── */
+  window._mgBlitz = function() {
+    _mgRunning = true;
+    _mgTimerVal = 10;
+    _mgUpdateTimer(10);
+    _mgSetStatus('Hit the moles!');
+
+    function spawnOne() {
+      if (!_mgRunning) return;
+      const holes = _mgHoles().filter(h => !h.classList.contains('up'));
+      if (!holes.length) { setTimeout(spawnOne, 150); return; }
+      const h = holes[Math.floor(Math.random() * holes.length)];
+      _mgShowMole(h, 'normal', 900, () => { _mgScore++; _mgUpdateScore(); setTimeout(spawnOne, 120); });
+    }
+
+    let spawns = 0;
+    const spawnLoop = setInterval(() => {
+      if (!_mgRunning) { clearInterval(spawnLoop); return; }
+      spawns++;
+      spawnOne();
+      if (spawns > 3) clearInterval(spawnLoop);
+    }, 200);
+    spawnOne();
+
+    _mgTimerInterval = setInterval(() => {
+      _mgTimerVal--;
+      _mgUpdateTimer(_mgTimerVal);
+      if (_mgTimerVal <= 3) _mgSetStatus(_mgTimerVal <= 0 ? "Time's up!" : '⚡ ' + _mgTimerVal + '...');
+      if (_mgTimerVal <= 0) {
+        _mgClearTimer();
+        _mgRunning = false;
+        const grade = _mgScore >= 20 ? '🏆 Legendary!' : _mgScore >= 12 ? '⭐ Great!' : _mgScore >= 6 ? '👍 Good' : '😅 Keep trying';
+        setTimeout(() => _mgEndGame('⚡', 'Blitz Done!', grade), 400);
+      }
+    }, 1000);
+  };
+
+  /* ── Bomb Dodge: 3 lives, avoid bombs ── */
+  window._mgDodge = function() {
+    _mgRunning = true;
+    _mgTimerVal = 30;
+    _mgUpdateTimer(30);
+    _mgSetStatus('Avoid the bombs!');
+
+    function spawnNext() {
+      if (!_mgRunning) return;
+      const holes = _mgHoles().filter(h => !h.classList.contains('up'));
+      if (!holes.length) { setTimeout(spawnNext, 200); return; }
+      const h = holes[Math.floor(Math.random() * holes.length)];
+      const isBomb = Math.random() < 0.28;
+      _mgShowMole(h, isBomb ? 'bomb' : 'normal', 1000,
+        () => {
+          if (isBomb) {
+            _mgLives--;
+            _mgUpdateLives();
+            _mgSetStatus('💥 Ouch! ' + _mgLives + ' lives left');
+            if (_mgLives <= 0) { _mgRunning = false; _mgClearTimer(); setTimeout(() => _mgEndGame('💣','Kaboom!',''), 400); return; }
+          } else {
+            _mgScore++;
+            _mgUpdateScore();
+          }
+          setTimeout(spawnNext, 200);
+        },
+        () => { setTimeout(spawnNext, 200); }
+      );
+    }
+    spawnNext(); spawnNext();
+
+    _mgTimerInterval = setInterval(() => {
+      _mgTimerVal--;
+      _mgUpdateTimer(_mgTimerVal);
+      if (_mgTimerVal <= 0) {
+        _mgClearTimer(); _mgRunning = false;
+        setTimeout(() => _mgEndGame('💣','Survived!', _mgScore >= 20 ? '🏆 Ace!' : _mgScore >= 10 ? '⭐ Nice!' : '😅 Phew!'), 400);
+      }
+    }, 1000);
+  };
+
+  /* ── Sniper: moles only visible for 0.35s ── */
+  window._mgSniper = function() {
+    _mgRunning = true;
+    _mgTimerVal = 15;
+    _mgUpdateTimer(15);
+    _mgSetStatus('Be fast — 0.35s windows!');
+
+    function spawnSniper() {
+      if (!_mgRunning) return;
+      const holes = _mgHoles().filter(h => !h.classList.contains('up'));
+      if (!holes.length) { setTimeout(spawnSniper, 200); return; }
+      const h = holes[Math.floor(Math.random() * holes.length)];
+      _mgShowMole(h, 'normal', 350,
+        () => { _mgScore++; _mgUpdateScore(); setTimeout(spawnSniper, 300); },
+        () => {  setTimeout(spawnSniper, 300); }
+      );
+    }
+    spawnSniper();
+
+    _mgTimerInterval = setInterval(() => {
+      _mgTimerVal--;
+      _mgUpdateTimer(_mgTimerVal);
+      if (_mgTimerVal <= 0) {
+        _mgClearTimer(); _mgRunning = false;
+        setTimeout(() => _mgEndGame('🎯','Sniper Done!', _mgScore >= 15 ? '🏆 Hawkeye!' : _mgScore >= 8 ? '⭐ Sharp!' : '🎯 Keep training'), 400);
+      }
+    }, 1000);
+  };
+
+  /* ── Memory: watch sequence, then click in order ── */
+  window._mgMemory = function() {
+    _mgRunning = true;
+    _mgSetStatus('Watch the sequence…');
+    let sequence = [];
+    let playerSeq = [];
+    let round = 1;
+    const MAX_ROUNDS = 5;
+
+    function addToSeq() {
+      const idx = Math.floor(Math.random() * 9);
+      sequence.push(idx);
+    }
+
+    function flashSeq(i) {
+      if (i >= sequence.length) { setTimeout(startInput, 500); return; }
+      const holes = _mgHoles();
+      const h = holes[sequence[i]];
+      h.innerHTML = getMoleIcon();
+      h.classList.add('up');
+      setTimeout(() => {
+        h.classList.remove('up'); h.innerHTML = '';
+        setTimeout(() => flashSeq(i + 1), 300);
+      }, 600);
+    }
+
+    function startInput() {
+      if (!_mgRunning) return;
+      _mgSetStatus('Your turn! Repeat the sequence (' + sequence.length + ' steps)');
+      playerSeq = [];
+      _mgHoles().forEach((h, i) => {
+        h.onclick = () => {
+          if (!_mgRunning) return;
+          h.innerHTML = getMoleIcon();
+          h.classList.add('up');
+          setTimeout(() => { h.classList.remove('up'); h.innerHTML = ''; }, 200);
+          playerSeq.push(i);
+          const pos = playerSeq.length - 1;
+          if (playerSeq[pos] !== sequence[pos]) {
+            _mgRunning = false;
+            _mgHoles().forEach(x => x.onclick = null);
+            setTimeout(() => _mgEndGame('🧠','Wrong!', 'You got to round ' + round), 400);
+            return;
+          }
+          if (playerSeq.length === sequence.length) {
+            _mgHoles().forEach(x => x.onclick = null);
+            _mgScore += round * 10;
+            _mgUpdateScore();
+            round++;
+            if (round > MAX_ROUNDS) {
+              _mgRunning = false;
+              setTimeout(() => _mgEndGame('🧠','Perfect Memory!','🏆 You nailed all ' + MAX_ROUNDS + ' rounds!'), 400);
+            } else {
+              _mgSetStatus('✅ Correct! Round ' + round + '…');
+              addToSeq();
+              setTimeout(() => { _mgSetStatus('Watch…'); flashSeq(0); }, 900);
+            }
+          }
+        };
+      });
+    }
+
+    addToSeq();
+    setTimeout(() => flashSeq(0), 600);
+    _mgUpdateTimer('—');
+  };
+
+  /* ════════════════════════════════════════════════ */
 
   // Init
   applySkin(activeSkin);
