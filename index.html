@@ -764,6 +764,8 @@
                       color:#ff4444; text-shadow:0 0 8px rgba(255,68,68,0.9),0 1px 3px #000; pointer-events:none;
                       opacity:0; transition:opacity 0.25s, transform 0.25s; white-space:nowrap; }
     .arena-hs-popup.show { opacity:1; transform:translate(-50%,-50px); }
+    .arena-scope { position:absolute; inset:0; pointer-events:none; display:none; }
+    .arena-scope.active { display:block; }
     .arena-death-overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
       background: rgba(220,38,38,0.38); pointer-events: none;
@@ -1407,6 +1409,35 @@
 
     <!-- Headshot popup -->
     <div class="arena-hs-popup" id="arena-hs-popup">🎯 HEADSHOT! ×2</div>
+
+    <!-- Scope overlay -->
+    <div class="arena-scope" id="arena-scope">
+      <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="scope-hole">
+            <rect width="100" height="100" fill="white"/>
+            <circle cx="50" cy="50" r="30" fill="black"/>
+          </mask>
+        </defs>
+        <!-- Dark surround -->
+        <rect width="100" height="100" fill="rgba(0,0,0,0.94)" mask="url(#scope-hole)"/>
+        <!-- Scope ring -->
+        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="0.8"/>
+        <!-- Full crosshair lines -->
+        <line x1="20" y1="50" x2="80" y2="50" stroke="rgba(200,220,200,0.75)" stroke-width="0.35"/>
+        <line x1="50" y1="20" x2="50" y2="80" stroke="rgba(200,220,200,0.75)" stroke-width="0.35"/>
+        <!-- Thick inner marks -->
+        <line x1="38" y1="50" x2="42" y2="50" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="58" y1="50" x2="62" y2="50" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="50" y1="38" x2="50" y2="42" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="50" y1="58" x2="50" y2="62" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <!-- Range labels -->
+        <text x="44" y="48.2" fill="rgba(200,230,200,0.6)" font-size="1.6" font-family="monospace">100</text>
+        <text x="53" y="48.2" fill="rgba(200,230,200,0.6)" font-size="1.6" font-family="monospace">200</text>
+        <!-- Center dot -->
+        <circle cx="50" cy="50" r="0.45" fill="rgba(255,80,80,0.9)"/>
+      </svg>
+    </div>
 
     <!-- Hit flash -->
     <div class="arena-swing-flash" id="arena-swing-flash"></div>
@@ -4022,7 +4053,7 @@
     minigun:  { name: 'Minigun',   icon: '🌀', damage: 6,  cooldown: 0.12, range: 16, cost: 5000,  color: 0xdc2626 },
     rpg:          { name: 'RPG',           icon: '💥', damage: 90,  cooldown: 2.5,  range: 30, cost: 9000, color: 0xff6600 },
     admingun:     { name: 'Admin Gun',     icon: '⚡', damage: 100, cooldown: 0.08, range: 50, cost: 0,    adminOnly: true, color: 0xff0044 },
-    adminsniper:  { name: 'Admin Sniper',  icon: '🎯', damage: 200, cooldown: 1.8,  range: 80, cost: 0,    adminOnly: true, color: 0xff0044 },
+    adminsniper:  { name: 'Admin Sniper',  icon: '🎯', damage: 50,  cooldown: 1.8,  range: 80, cost: 0,    adminOnly: true, color: 0xff0044 },
     adminminigun: { name: 'Admin Minigun', icon: '🌀', damage: 25,  cooldown: 0.06, range: 28, cost: 0,    adminOnly: true, color: 0xff0044 },
   };
 
@@ -4782,11 +4813,44 @@
 
     /* ── Pointer lock ── */
     const lockMouse = () => { try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(()=>{}); } catch(e){} };
-    const onDocClick = () => {
-      if (document.pointerLockElement === canvas) { doSwing(); }
-      else { lockMouse(); }
+    /* ── Scope ── */
+    let scopeEl       = document.getElementById('arena-scope');
+    let scoped        = false;
+    let scopeTargetFov = 75;
+    const SCOPE_FOV   = 18;
+    const NORMAL_FOV  = 75;
+
+    function _isSniperActive() {
+      return activeWeaponType === 'gun' && (activeGun === 'sniper' || activeGun === 'adminsniper');
+    }
+    function scopeIn() {
+      if (!_isSniperActive()) return;
+      scoped = true; scopeTargetFov = SCOPE_FOV;
+      if (scopeEl) scopeEl.classList.add('active');
+      if (crosshairEl) crosshairEl.style.display = 'none';
+    }
+    function scopeOut() {
+      scoped = false; scopeTargetFov = NORMAL_FOV;
+      if (scopeEl) scopeEl.classList.remove('active');
+      if (crosshairEl) crosshairEl.style.display = '';
+    }
+
+    const onContextMenu = e => e.preventDefault();
+    let mouseHeld = false;
+    const onDocClick = () => { if (document.pointerLockElement !== canvas) lockMouse(); };
+    const onMouseDown = e => {
+      if (document.pointerLockElement !== canvas) { lockMouse(); return; }
+      if (e.button === 0) { mouseHeld = true; doSwing(); }
+      if (e.button === 2) scopeIn();
     };
-    document.addEventListener('click', onDocClick);
+    const onMouseUp = e => {
+      if (e.button === 0) mouseHeld = false;
+      if (e.button === 2) scopeOut();
+    };
+    document.addEventListener('contextmenu', onContextMenu);
+    document.addEventListener('click',       onDocClick);
+    document.addEventListener('mousedown',   onMouseDown);
+    document.addEventListener('mouseup',     onMouseUp);
 
     const onPLChange = () => {
       if (clickPrompt) clickPrompt.style.display = document.pointerLockElement === canvas ? 'none' : '';
@@ -4838,9 +4902,10 @@
           const toOpp  = flat.clone().normalize();
           const facing = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
           if (facing.dot(toOpp) > 0.3) {
-            const hs = _isHeadshotMelee();
-            const dmg = hs ? myWeapon.damage * 2 : myWeapon.damage;
-            if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: dmg, isHeadshot: hs });
+            const hs     = _isHeadshotMelee();
+            const dmg    = hs ? myWeapon.damage * 2 : myWeapon.damage;
+            const pierce = activeGun === 'adminsniper';
+            if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: dmg, isHeadshot: hs, armorPierce: pierce });
             oppHp = Math.max(0, oppHp - dmg);
             updateHud(); refreshOppHpBar();
             if (hs) showHsPopup();
@@ -4905,7 +4970,9 @@
         case 'arena-hit': {
           if (invincible > 0) break;
           const rawDmg = data.damage || 10;
-          const reduced = Math.max(1, Math.round(rawDmg * (1 - myArmorData.defense)));
+          const reduced = data.armorPierce
+            ? rawDmg
+            : Math.max(1, Math.round(rawDmg * (1 - myArmorData.defense)));
           myHp = Math.max(0, myHp - reduced);
           updateHud();
           if (_arenaConn) _arenaConn.send({ type: 'arena-hp', hp: myHp });
@@ -4947,9 +5014,16 @@
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
 
+      // Smooth scope FOV
+      if (Math.abs(camera.fov - scopeTargetFov) > 0.3) {
+        camera.fov += (scopeTargetFov - camera.fov) * (1 - Math.pow(0.04, dt));
+        camera.updateProjectionMatrix();
+      }
+
       if (!isDead && !gameOver) {
         if (swingCooldown > 0) swingCooldown -= dt;
         if (invincible > 0)    invincible    -= dt;
+        if (mouseHeld && swingCooldown <= 0) doSwing();
 
         // WASD movement
         const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
@@ -4995,12 +5069,17 @@
         b.life -= dt;
         b.mesh.position.addScaledVector(b.vel, dt);
         // Check hit against opponent
-        if (!b.hit && b.mesh.position.distanceTo(oppGroup.position) < 1.2) {
+        const _bpos      = b.mesh.position;
+        const _bodyCenter = new THREE.Vector3(oppGroup.position.x, oppGroup.position.y + 0.55, oppGroup.position.z);
+        const _headCenter = new THREE.Vector3(oppGroup.position.x, oppGroup.position.y + 1.46, oppGroup.position.z);
+        const _headHit    = !b.hit && _bpos.distanceTo(_headCenter) < 0.36;
+        const _bodyHit    = !b.hit && _bpos.distanceTo(_bodyCenter) < 0.72;
+        if (_headHit || _bodyHit) {
           b.hit = true;
-          const headWorldY = oppGroup.position.y + 1.46;
-          const hs  = Math.abs(b.mesh.position.y - headWorldY) < 0.5;
-          const dmg = hs ? myWeapon.damage * 2 : myWeapon.damage;
-          if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: dmg, isHeadshot: hs });
+          const hs    = _headHit;
+          const dmg   = hs ? myWeapon.damage * 2 : myWeapon.damage;
+          const pierce = activeGun === 'adminsniper';
+          if (_arenaConn) _arenaConn.send({ type: 'arena-hit', damage: dmg, isHeadshot: hs, armorPierce: pierce });
           oppHp = Math.max(0, oppHp - dmg);
           updateHud(); refreshOppHpBar();
           if (hs) showHsPopup();
@@ -5033,9 +5112,14 @@
         window.removeEventListener('keydown', onKD);
         window.removeEventListener('keyup',   onKU);
         window.removeEventListener('resize',  onResize);
+        document.removeEventListener('contextmenu',      onContextMenu);
         document.removeEventListener('click',            onDocClick);
+        document.removeEventListener('mousedown',        onMouseDown);
+        document.removeEventListener('mouseup',          onMouseUp);
         document.removeEventListener('pointerlockchange',onPLChange);
         document.removeEventListener('mousemove',        onMouseMove);
+        mouseHeld = false;
+        scopeOut();
       }
     };
   }
