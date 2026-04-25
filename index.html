@@ -889,6 +889,38 @@
       background: rgba(0,0,0,0.58); cursor: pointer; pointer-events: all; gap: 10px;
     }
 
+    /* ── Mole Defender ── */
+    #screen-defender { padding: 0 !important; gap: 0 !important; }
+    #screen-defender.active { display: block !important; position: fixed; inset: 0; z-index: 2; }
+    #def-canvas  { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
+    #def-hud     { position: absolute; inset: 0; pointer-events: none; }
+    .def-back-btn { pointer-events: all; position: absolute; top: 16px; left: 16px; width: auto; padding: 10px 22px; font-size: 0.95rem; }
+    .def-crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 42px; height: 42px; pointer-events: none; filter: drop-shadow(0 0 2px rgba(0,0,0,0.7)); }
+    .def-hp-wrap { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .def-hp-label { font-size: 0.82rem; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+    .def-hp-bar-bg { width: 280px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden; }
+    .def-hp-bar-fill { height: 100%; background: #22c55e; border-radius: 8px; transition: width 0.1s, background 0.2s; }
+    .def-top-hud { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 24px; border-radius: 12px; font-size: 0.95rem; font-weight: 900; color: #fff; white-space: nowrap; display: flex; gap: 18px; }
+    .def-wave-announce { position: absolute; top: 38%; left: 50%; transform: translate(-50%,-50%); font-size: 2.2rem; font-weight: 900; color: #f5c542; text-shadow: 0 0 18px rgba(255,200,0,0.8), 0 2px 6px #000; pointer-events: none; opacity: 0; transition: opacity 0.4s; text-align: center; white-space: nowrap; }
+    .def-wave-announce.show { opacity: 1; }
+    .def-weapon-hud { position: absolute; bottom: 20px; right: 24px; background: rgba(0,0,0,0.55); border-radius: 12px; padding: 8px 14px; font-size: 0.85rem; pointer-events: none; }
+    .def-swing-flash { position: absolute; inset: 0; background: rgba(255,255,255,0.18); pointer-events: none; opacity: 0; transition: opacity 0.08s; }
+    .def-swing-flash.active { opacity: 1; }
+    .def-hs-popup { position:absolute; top:42%; left:50%; transform:translate(-50%,-30px); font-size:1.1rem; font-weight:900;
+                    color:#ff4444; text-shadow:0 0 8px rgba(255,68,68,0.9),0 1px 3px #000; pointer-events:none;
+                    opacity:0; transition:opacity 0.25s, transform 0.25s; white-space:nowrap; }
+    .def-hs-popup.show { opacity:1; transform:translate(-50%,-50px); }
+    .def-dmg-flash { position: absolute; inset: 0; background: rgba(220,0,0,0.28); pointer-events: none; opacity: 0; transition: opacity 0.12s; }
+    .def-dmg-flash.active { opacity: 1; }
+    .def-scope { position:absolute; inset:0; pointer-events:none; display:none; }
+    .def-scope.active { display:block; }
+    .def-controls-hint { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); padding: 8px 20px; border-radius: 12px; font-size: 0.8rem; opacity: 0.85; white-space: nowrap; }
+    .def-gameover-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.72); gap: 16px; pointer-events: none; }
+    .def-gameover-overlay.show { pointer-events: all; }
+    .def-gameover-title { font-size: 3rem; font-weight: 900; color: #ef4444; text-shadow: 0 0 24px rgba(239,68,68,0.8); }
+    .def-gameover-stats { font-size: 1.1rem; color: #f5c542; font-weight: 700; }
+    .def-clickprompt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.58); cursor: pointer; pointer-events: all; gap: 10px; }
+
     /* ── Quests ── */
     .btn-quests { background: #f97316; color: #fff; box-shadow: 0 4px 0 #c2410c; }
     #screen-quests, #screen-story { overflow-y: auto; }
@@ -1720,6 +1752,9 @@
       <button class="btn btn-primary"   onclick="hostArena()">⚔️ Create Room</button>
       <button class="btn btn-secondary" onclick="showSrvPanel('srv-joining')">🔗 Join Room</button>
     </div>
+    <div style="width:100%;border-top:1px solid rgba(255,255,255,0.12);margin:4px 0;"></div>
+    <button class="btn btn-easy" style="width:auto;padding:14px 32px;" onclick="openDefender()">🐀 Solo Defense</button>
+    <p style="opacity:0.5;font-size:0.78rem;text-align:center;margin:-10px 0 0;">Survive waves of incoming moles!</p>
     <button class="btn btn-back" onclick="goTo('screen-home')">← Back</button>
   </div>
 
@@ -1838,6 +1873,90 @@
       <div style="font-size:3rem;">⚔️</div>
       <div style="font-size:1.3rem;font-weight:900;color:#fff;">Click to enter the arena</div>
       <div style="font-size:0.85rem;opacity:0.7;">Mouse look · WASD move · Left-click to swing · ESC release</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MOLE DEFENDER ═══════════════════ -->
+<div class="screen" id="screen-defender">
+  <canvas id="def-canvas"></canvas>
+  <div id="def-hud">
+    <button class="btn btn-back def-back-btn" onclick="event.stopPropagation();leaveDefender()">← Leave</button>
+
+    <!-- Crosshair -->
+    <svg class="def-crosshair" id="def-crosshair" viewBox="0 0 42 42" fill="none">
+      <circle cx="21" cy="21" r="1.5" fill="rgba(255,255,255,0.95)"/>
+      <line x1="21" y1="3"  x2="21" y2="13" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="21" y1="29" x2="21" y2="39" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="3"  y1="21" x2="13" y2="21" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="29" y1="21" x2="39" y2="21" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+
+    <!-- Scope overlay -->
+    <div class="def-scope" id="def-scope">
+      <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <mask id="def-scope-hole">
+            <rect width="100" height="100" fill="white"/>
+            <circle cx="50" cy="50" r="30" fill="black"/>
+          </mask>
+        </defs>
+        <rect width="100" height="100" fill="rgba(0,0,0,0.94)" mask="url(#def-scope-hole)"/>
+        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(0,0,0,0.7)" stroke-width="0.8"/>
+        <line x1="20" y1="50" x2="80" y2="50" stroke="rgba(200,220,200,0.75)" stroke-width="0.35"/>
+        <line x1="50" y1="20" x2="50" y2="80" stroke="rgba(200,220,200,0.75)" stroke-width="0.35"/>
+        <line x1="38" y1="50" x2="42" y2="50" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="58" y1="50" x2="62" y2="50" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="50" y1="38" x2="50" y2="42" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <line x1="50" y1="58" x2="50" y2="62" stroke="rgba(255,255,255,0.95)" stroke-width="0.7"/>
+        <circle cx="50" cy="50" r="0.45" fill="rgba(255,80,80,0.9)"/>
+      </svg>
+    </div>
+
+    <!-- Headshot popup -->
+    <div class="def-hs-popup" id="def-hs-popup">🎯 HEADSHOT! ×2</div>
+
+    <!-- Damage flash -->
+    <div class="def-dmg-flash" id="def-dmg-flash"></div>
+    <!-- Swing flash -->
+    <div class="def-swing-flash" id="def-swing-flash"></div>
+
+    <!-- Top HUD -->
+    <div class="def-top-hud">
+      <span>🌊 Wave <span id="def-wave">1</span></span>
+      <span>💀 Kills <span id="def-kills">0</span></span>
+      <span>⭐ Score <span id="def-score">0</span></span>
+      <span>🐀 Left <span id="def-left">0</span></span>
+    </div>
+
+    <!-- Wave announce -->
+    <div class="def-wave-announce" id="def-wave-announce">Wave 1</div>
+
+    <!-- HP bar -->
+    <div class="def-hp-wrap">
+      <div class="def-hp-label">❤️ HP: <span id="def-my-hp">100</span>/100</div>
+      <div class="def-hp-bar-bg"><div class="def-hp-bar-fill" id="def-hp-fill" style="width:100%"></div></div>
+    </div>
+
+    <!-- Weapon + controls -->
+    <div class="def-weapon-hud" id="def-weapon-hud">🔫 Pistol</div>
+    <div class="def-controls-hint">WASD — move · Space — jump · C — slide/crouch · Click — attack · ESC — release mouse</div>
+
+    <!-- Game Over overlay -->
+    <div class="def-gameover-overlay" id="def-gameover-overlay" style="display:none;">
+      <div class="def-gameover-title">💀 Game Over!</div>
+      <div class="def-gameover-stats" id="def-gameover-stats">Wave 1 · 0 kills · 0 score</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;pointer-events:all;">
+        <button class="btn btn-primary"   onclick="event.stopPropagation();openDefender()">Play Again</button>
+        <button class="btn btn-back"      onclick="event.stopPropagation();leaveDefender()">← Leave</button>
+      </div>
+    </div>
+
+    <!-- Click to start -->
+    <div id="def-clickprompt" class="def-clickprompt">
+      <div style="font-size:3rem;">🐀</div>
+      <div style="font-size:1.3rem;font-weight:900;color:#fff;">Click to start defending!</div>
+      <div style="font-size:0.85rem;opacity:0.7;">Shoot or hit the moles before they reach you</div>
     </div>
   </div>
 </div>
@@ -5530,6 +5649,562 @@
         document.removeEventListener('mousemove',        onMouseMove);
         mouseHeld = false;
         scopeOut();
+      }
+    };
+  }
+
+  /* ════════════════════════════════════════════════
+     MOLE DEFENDER  (singleplayer wave survival)
+  ════════════════════════════════════════════════ */
+  let _defInst = null;
+
+  function openDefender() {
+    if (typeof THREE === 'undefined') { alert('3D engine not loaded — check connection.'); return; }
+    goTo('screen-defender');
+    if (_defInst) { _defInst.destroy(); _defInst = null; }
+    setTimeout(() => { _defInst = _buildDefender(); }, 50);
+  }
+
+  function leaveDefender() {
+    if (_defInst) { _defInst.destroy(); _defInst = null; }
+    goTo('screen-server');
+  }
+
+  function _buildDefender() {
+    const canvas = document.getElementById('def-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    /* ── Scene ── */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x8fbbd0);
+    scene.fog = new THREE.FogExp2(0xa0c8d8, 0.022);
+
+    /* ── Camera ── */
+    const EYE_H = 1.7;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 100);
+    camera.rotation.order = 'YXZ';
+
+    /* ── Lights ── */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const sunLight = new THREE.DirectionalLight(0xfff5cc, 1.3);
+    sunLight.position.set(10, 20, 8); sunLight.castShadow = true; scene.add(sunLight);
+    [[0,6,0,1.0,22],[14,3,14,0.6,16],[-14,3,-14,0.6,16]].forEach(([x,y,z,i,r]) => {
+      const l = new THREE.PointLight(0xffffff, i, r); l.position.set(x,y,z); scene.add(l);
+    });
+
+    /* ── Floor ── */
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 50),
+      new THREE.MeshLambertMaterial({ color: 0x5a8c40 })
+    );
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+    const grid = new THREE.GridHelper(50, 25, 0x2a5a18, 0x2a5a18);
+    grid.material.opacity = 0.2; grid.material.transparent = true; scene.add(grid);
+
+    /* ── Boundary walls (invisible collision) ── */
+    const ARENA_R = 22;
+
+    /* ── Center platform to give player a base ── */
+    const platMat = new THREE.MeshLambertMaterial({ color: 0x8b6914 });
+    [
+      [0,0.05,0, 6,0.12,6],
+    ].forEach(([px,py,pz,w,h,d]) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), platMat);
+      m.position.set(px,py,pz); scene.add(m);
+    });
+
+    /* ── Some cover rocks ── */
+    const rockMat = new THREE.MeshLambertMaterial({ color: 0x7a7a7a });
+    [[8,0.4,0],[-8,0.4,0],[0,0.4,8],[0,0.4,-8]].forEach(([x,y,z]) => {
+      const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.9,0), rockMat);
+      r.position.set(x,y,z); r.rotation.y = Math.random()*Math.PI; r.castShadow = true; scene.add(r);
+    });
+
+    /* ── Player state ── */
+    const playerPos = new THREE.Vector3(0, 0, 0);
+    let yaw = 0, pitch = 0;
+    const PITCH_MAX = Math.PI/2 - 0.04;
+    const MOUSE_SENS = 0.0022;
+    const SPEED = 6;
+    const GRAVITY = -22, JUMP_FORCE = 9;
+    let velY = 0;
+    let myHp = 100;
+    const MAX_HP = 100;
+    let invincible = 0;
+    let gameOver = false;
+    let mouseHeld = false;
+
+    const isGun    = activeWeaponType === 'gun';
+    const myWeapon = isGun ? (GUNS[activeGun] || GUNS.pistol) : (SWORDS[activeSword] || SWORDS.wood);
+    let swingCooldown = 0;
+    const bullets = [];
+
+    // Crouch / slide
+    const CROUCH_EYE = 0.85;
+    let crouching = false, sliding = false;
+    let slideVX = 0, slideVZ = 0, slideTimer = 0;
+    const SLIDE_DUR = 0.65, SLIDE_SPEED = 14;
+    let currentEyeH = EYE_H;
+
+    // Scope
+    let scoped = false, scopeTargetFov = 75;
+    const SCOPE_FOV = 18, NORMAL_FOV = 75;
+    const scopeEl     = document.getElementById('def-scope');
+    const crosshairEl = document.getElementById('def-crosshair');
+    const hsPopupEl   = document.getElementById('def-hs-popup');
+    let hsPopupTimer  = null;
+
+    function _isSniperActive() { return activeWeaponType === 'gun' && (activeGun === 'sniper' || activeGun === 'adminsniper'); }
+    function scopeIn()  { if (!_isSniperActive()) return; scoped=true; scopeTargetFov=SCOPE_FOV; if(scopeEl) scopeEl.classList.add('active'); if(crosshairEl) crosshairEl.style.display='none'; }
+    function scopeOut() { scoped=false; scopeTargetFov=NORMAL_FOV; if(scopeEl) scopeEl.classList.remove('active'); if(crosshairEl) crosshairEl.style.display=''; }
+
+    function showHsPopup() {
+      if (crosshairEl) { crosshairEl.style.filter='drop-shadow(0 0 4px #f00)'; setTimeout(()=>{ crosshairEl.style.filter=''; },300); }
+      if (hsPopupEl) { clearTimeout(hsPopupTimer); hsPopupEl.classList.add('show'); hsPopupTimer = setTimeout(()=>hsPopupEl.classList.remove('show'), 900); }
+    }
+
+    /* ── Wave / mole state ── */
+    let wave = 1, totalKills = 0, score = 0;
+    let molesThisWave = 0, molesSpawned = 0, molesKilled = 0;
+    let spawnTimer = 0, waveAnnounceTimer = 0;
+    let betweenWaves = false, betweenTimer = 0;
+    const BETWEEN_DUR = 3.5;
+    const moles = []; // active mole objects
+
+    const waveAnnEl  = document.getElementById('def-wave-announce');
+    const waveEl     = document.getElementById('def-wave');
+    const killsEl    = document.getElementById('def-kills');
+    const scoreEl    = document.getElementById('def-score');
+    const leftEl     = document.getElementById('def-left');
+    const hpFill     = document.getElementById('def-hp-fill');
+    const myHpEl     = document.getElementById('def-my-hp');
+    const goOverlay  = document.getElementById('def-gameover-overlay');
+    const goStats    = document.getElementById('def-gameover-stats');
+    const clickPr    = document.getElementById('def-clickprompt');
+    const swingFlash = document.getElementById('def-swing-flash');
+    const dmgFlash   = document.getElementById('def-dmg-flash');
+    const weaponHud  = document.getElementById('def-weapon-hud');
+
+    if (weaponHud) weaponHud.textContent = myWeapon.icon + ' ' + myWeapon.name + (isGun ? ' 🔫' : ' 🗡️');
+
+    function updateHud() {
+      const pct = Math.max(0, myHp);
+      if (hpFill) { hpFill.style.width = pct + '%'; hpFill.style.background = myHp > 50 ? '#22c55e' : myHp > 25 ? '#f59e0b' : '#ef4444'; }
+      if (myHpEl)  myHpEl.textContent  = Math.max(0, Math.ceil(myHp));
+      if (waveEl)  waveEl.textContent  = wave;
+      if (killsEl) killsEl.textContent = totalKills;
+      if (scoreEl) scoreEl.textContent = score;
+      const remaining = molesThisWave - molesKilled;
+      if (leftEl)  leftEl.textContent  = Math.max(0, remaining);
+    }
+
+    function waveConfig(w) {
+      return {
+        count: 3 + (w - 1) * 2,
+        hp: 30 + (w - 1) * 8,
+        speed: 1.6 + (w - 1) * 0.25,
+        spawnInterval: Math.max(0.6, 2.2 - w * 0.18),
+        damage: 6 + (w - 1) * 2,
+        attackRate: Math.max(0.4, 1.0 - (w - 1) * 0.06),
+      };
+    }
+
+    function announceWave(w) {
+      if (!waveAnnEl) return;
+      waveAnnEl.textContent = w === 1 ? '🐀 Wave 1 — Defend!' : `🌊 Wave ${w}!`;
+      waveAnnEl.classList.add('show');
+      waveAnnounceTimer = 2.2;
+    }
+
+    function startWave(w) {
+      wave = w;
+      const cfg = waveConfig(w);
+      molesThisWave = cfg.count;
+      molesSpawned = 0; molesKilled = 0;
+      spawnTimer = 0;
+      betweenWaves = false;
+      updateHud();
+      announceWave(w);
+    }
+
+    /* ── Build mole mesh ── */
+    function buildMoleMesh() {
+      const g = new THREE.Group();
+      // Body
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.55, 0.7, 0.45),
+        new THREE.MeshLambertMaterial({ color: 0x4a3020 })
+      );
+      body.position.y = 0.35; body.castShadow = true; g.add(body);
+      // Head
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28, 8, 6),
+        new THREE.MeshLambertMaterial({ color: 0x5a3828 })
+      );
+      head.position.y = 0.88; head.castShadow = true; g.add(head);
+      // Snout
+      const snout = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.09, 0.11, 0.18, 8),
+        new THREE.MeshLambertMaterial({ color: 0xe8a090 })
+      );
+      snout.rotation.x = Math.PI/2; snout.position.set(0, 0.84, 0.26); g.add(snout);
+      // Eyes
+      const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
+      [-0.11,0.11].forEach(ex => {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 6), eyeMat);
+        eye.position.set(ex, 0.96, 0.2); g.add(eye);
+      });
+      // Arms
+      const armMat = new THREE.MeshLambertMaterial({ color: 0x4a3020 });
+      [-0.38, 0.38].forEach(ax => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.38, 0.12), armMat);
+        arm.position.set(ax, 0.3, 0); arm.rotation.z = ax > 0 ? -0.4 : 0.4; g.add(arm);
+      });
+      return g;
+    }
+
+    /* ── Spawn one mole ── */
+    function spawnMole() {
+      const cfg = waveConfig(wave);
+      const mesh = buildMoleMesh();
+      // Random point on one of 4 wall edges
+      const edge = Math.floor(Math.random() * 4);
+      const t = (Math.random() - 0.5) * 2 * (ARENA_R - 2);
+      const pos = new THREE.Vector3();
+      if (edge === 0) pos.set(ARENA_R, 0, t);
+      else if (edge === 1) pos.set(-ARENA_R, 0, t);
+      else if (edge === 2) pos.set(t, 0, ARENA_R);
+      else pos.set(t, 0, -ARENA_R);
+      mesh.position.copy(pos);
+      scene.add(mesh);
+
+      // HP sprite
+      const hpCvs = document.createElement('canvas');
+      hpCvs.width = 128; hpCvs.height = 14;
+      const hpCtx = hpCvs.getContext('2d');
+      const hpTex = new THREE.CanvasTexture(hpCvs);
+      const hpSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: hpTex, depthTest: false }));
+      hpSprite.position.y = 1.55; hpSprite.scale.set(1.1, 0.13, 1); mesh.add(hpSprite);
+
+      const mole = {
+        mesh, pos: pos.clone(),
+        hp: cfg.hp, maxHp: cfg.hp,
+        speed: cfg.speed,
+        damage: cfg.damage,
+        attackRate: cfg.attackRate,
+        attackTimer: 0,
+        dead: false,
+        hpTex, hpCvs, hpCtx,
+        deathTimer: 0,
+      };
+      function refreshBar() {
+        hpCtx.clearRect(0,0,128,14);
+        hpCtx.fillStyle='#111'; hpCtx.fillRect(0,0,128,14);
+        const p = Math.max(0, mole.hp / mole.maxHp);
+        hpCtx.fillStyle = p>0.5?'#22c55e':p>0.25?'#f59e0b':'#ef4444';
+        hpCtx.fillRect(0,0,Math.round(128*p),14);
+        hpTex.needsUpdate = true;
+      }
+      mole.refreshBar = refreshBar;
+      refreshBar();
+      moles.push(mole);
+    }
+
+    /* ── Hit a mole (gun bullet or melee) ── */
+    function hitMole(mole, dmg, isHeadshot) {
+      if (mole.dead) return;
+      mole.hp = Math.max(0, mole.hp - dmg);
+      mole.refreshBar();
+      if (isHeadshot) showHsPopup();
+      if (mole.hp <= 0) killMole(mole);
+    }
+
+    function killMole(mole) {
+      if (mole.dead) return;
+      mole.dead = true;
+      mole.deathTimer = 0.3;
+      molesKilled++;
+      totalKills++;
+      score += 10 * wave;
+      updateHud();
+    }
+
+    /* ── Melee headshot check vs a specific mole ── */
+    function _isHeadshotMeleeMole(mole) {
+      const camPos  = new THREE.Vector3(playerPos.x, playerPos.y + EYE_H, playerPos.z);
+      const lookDir = new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
+      const headWP  = new THREE.Vector3(mole.pos.x, mole.pos.y + 0.88, mole.pos.z);
+      const toHead  = headWP.clone().sub(camPos);
+      const proj    = toHead.dot(lookDir);
+      const perp    = toHead.clone().sub(lookDir.clone().multiplyScalar(proj)).length();
+      return proj > 0 && proj < 4 && perp < 0.38;
+    }
+
+    /* ── Attack ── */
+    function doAttack() {
+      if (swingCooldown > 0 || gameOver) return;
+      swingCooldown = myWeapon.cooldown;
+      if (swingFlash) { swingFlash.classList.add('active'); setTimeout(()=>swingFlash.classList.remove('active'), 80); }
+
+      if (isGun) {
+        const bulletMat = new THREE.MeshBasicMaterial({ color: myWeapon.color || 0xffff00 });
+        const bulletMesh = new THREE.Mesh(new THREE.SphereGeometry(0.1,6,6), bulletMat);
+        const origin = new THREE.Vector3(playerPos.x, playerPos.y + EYE_H - 0.1, playerPos.z);
+        bulletMesh.position.copy(origin); scene.add(bulletMesh);
+        const dir = new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
+        bullets.push({ mesh: bulletMesh, vel: dir.clone().multiplyScalar(35), life: (myWeapon.range||20)/35, hit: false });
+      } else {
+        // Melee
+        moles.forEach(mole => {
+          if (mole.dead) return;
+          const flat = new THREE.Vector3(mole.pos.x - playerPos.x, 0, mole.pos.z - playerPos.z);
+          if (flat.length() > 3.2) return;
+          const toMole = flat.clone().normalize();
+          const facing = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+          if (facing.dot(toMole) > 0.25) {
+            const hs  = _isHeadshotMeleeMole(mole);
+            const dmg = hs ? myWeapon.damage * 2 : myWeapon.damage;
+            hitMole(mole, dmg, hs);
+          }
+        });
+      }
+    }
+
+    /* ── End game ── */
+    function endGame() {
+      gameOver = true;
+      scopeOut();
+      if (document.pointerLockElement === canvas) document.exitPointerLock();
+      if (goOverlay) {
+        goOverlay.style.display = '';
+        goOverlay.classList.add('show');
+      }
+      if (goStats) goStats.textContent = `Wave ${wave} · ${totalKills} kills · ${score} score`;
+    }
+
+    /* ── Pointer lock ── */
+    const lockMouse = () => { try { const p = canvas.requestPointerLock(); if(p&&p.catch) p.catch(()=>{}); } catch(e){} };
+    const onDocClick = () => { if (document.pointerLockElement !== canvas) lockMouse(); };
+    const onContextMenu = e => e.preventDefault();
+    const onMouseDown = e => {
+      if (document.pointerLockElement !== canvas) { lockMouse(); return; }
+      if (e.button === 0) { mouseHeld = true; doAttack(); }
+      if (e.button === 2) scopeIn();
+    };
+    const onMouseUp = e => { if (e.button === 0) mouseHeld = false; if (e.button === 2) scopeOut(); };
+    const onPLChange = () => { if (clickPr) clickPr.style.display = document.pointerLockElement === canvas ? 'none' : ''; };
+    const onMouseMove = e => {
+      if (document.pointerLockElement !== canvas) return;
+      yaw   -= e.movementX * MOUSE_SENS;
+      pitch -= e.movementY * MOUSE_SENS;
+      pitch = Math.max(-PITCH_MAX, Math.min(PITCH_MAX, pitch));
+    };
+    document.addEventListener('contextmenu',      onContextMenu);
+    document.addEventListener('click',            onDocClick);
+    document.addEventListener('mousedown',        onMouseDown);
+    document.addEventListener('mouseup',          onMouseUp);
+    document.addEventListener('pointerlockchange',onPLChange);
+    document.addEventListener('mousemove',        onMouseMove);
+
+    /* ── Keyboard ── */
+    const keys = {};
+    const MOVE_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','Space']);
+    const onKD = e => {
+      keys[e.code] = true;
+      if (MOVE_KEYS.has(e.code)) e.preventDefault();
+      if (e.code === 'Space' && playerPos.y <= 0.01 && !gameOver) {
+        if (sliding) { sliding = false; crouching = false; }
+        velY = JUMP_FORCE;
+      }
+      if (e.code === 'KeyC' && !gameOver && playerPos.y <= 0.01) {
+        if (sliding) return;
+        const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
+        const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
+        if (fwd !== 0 || strafe !== 0) {
+          const cy = Math.cos(yaw), sy = Math.sin(yaw);
+          let dx = (-sy*fwd + cy*strafe), dz = (-cy*fwd - sy*strafe);
+          const mag = Math.sqrt(dx*dx+dz*dz); if(mag>0){dx/=mag;dz/=mag;}
+          slideVX = dx*SLIDE_SPEED; slideVZ = dz*SLIDE_SPEED;
+          sliding = true; slideTimer = SLIDE_DUR; crouching = false;
+        } else { crouching = !crouching; }
+      }
+    };
+    const onKU = e => { keys[e.code] = false; };
+    window.addEventListener('keydown', onKD);
+    window.addEventListener('keyup',   onKU);
+
+    /* ── Init ── */
+    camera.position.set(0, EYE_H, 0);
+    startWave(1);
+    updateHud();
+
+    /* ── Animate ── */
+    let running = true;
+    const clock = new THREE.Clock();
+
+    function animate() {
+      if (!running) return;
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      // Scope FOV lerp
+      if (Math.abs(camera.fov - scopeTargetFov) > 0.3) {
+        camera.fov += (scopeTargetFov - camera.fov) * (1 - Math.pow(0.04, dt));
+        camera.updateProjectionMatrix();
+      }
+
+      // Wave announce fade
+      if (waveAnnounceTimer > 0) {
+        waveAnnounceTimer -= dt;
+        if (waveAnnounceTimer <= 0 && waveAnnEl) waveAnnEl.classList.remove('show');
+      }
+
+      if (!gameOver) {
+        if (swingCooldown > 0) swingCooldown -= dt;
+        if (invincible > 0)    invincible    -= dt;
+        if (mouseHeld && swingCooldown <= 0) doAttack();
+
+        // Slide
+        if (sliding) {
+          slideTimer -= dt;
+          const t = Math.max(0, slideTimer / SLIDE_DUR);
+          playerPos.x = Math.max(-ARENA_R+0.5, Math.min(ARENA_R-0.5, playerPos.x + slideVX * t * dt));
+          playerPos.z = Math.max(-ARENA_R+0.5, Math.min(ARENA_R-0.5, playerPos.z + slideVZ * t * dt));
+          if (slideTimer <= 0) sliding = false;
+        }
+
+        // WASD
+        if (!sliding) {
+          const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
+          const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
+          if (fwd !== 0 || strafe !== 0) {
+            const cy = Math.cos(yaw), sy = Math.sin(yaw);
+            let dx = (-sy*fwd + cy*strafe), dz = (-cy*fwd - sy*strafe);
+            const mag = Math.sqrt(dx*dx+dz*dz); if(mag>0){dx/=mag;dz/=mag;}
+            const spd = crouching ? SPEED*0.5 : SPEED;
+            playerPos.x = Math.max(-ARENA_R+0.5, Math.min(ARENA_R-0.5, playerPos.x + dx*spd*dt));
+            playerPos.z = Math.max(-ARENA_R+0.5, Math.min(ARENA_R-0.5, playerPos.z + dz*spd*dt));
+          }
+        }
+
+        // Gravity
+        velY += GRAVITY * dt;
+        playerPos.y = Math.max(0, playerPos.y + velY*dt);
+        if (playerPos.y <= 0) velY = 0;
+
+        // Between-wave pause
+        if (betweenWaves) {
+          betweenTimer -= dt;
+          if (betweenTimer <= 0) startWave(wave + 1);
+        } else {
+          // Spawn moles
+          if (molesSpawned < molesThisWave) {
+            spawnTimer -= dt;
+            if (spawnTimer <= 0) {
+              spawnMole(); molesSpawned++;
+              spawnTimer = waveConfig(wave).spawnInterval;
+            }
+          }
+
+          // Mole AI
+          for (let i = moles.length - 1; i >= 0; i--) {
+            const mole = moles[i];
+            if (mole.dead) {
+              mole.deathTimer -= dt;
+              if (mole.deathTimer <= 0) {
+                scene.remove(mole.mesh);
+                moles.splice(i, 1);
+                // Check wave complete
+                if (molesKilled >= molesThisWave && molesSpawned >= molesThisWave) {
+                  betweenWaves = true; betweenTimer = BETWEEN_DUR;
+                  if (waveAnnEl) { waveAnnEl.textContent = `✅ Wave ${wave} Clear! Next wave in ${Math.round(BETWEEN_DUR)}s…`; waveAnnEl.classList.add('show'); waveAnnounceTimer = BETWEEN_DUR - 0.2; }
+                }
+              }
+              continue;
+            }
+
+            // Walk toward player
+            const dx = playerPos.x - mole.pos.x;
+            const dz = playerPos.z - mole.pos.z;
+            const dist = Math.sqrt(dx*dx + dz*dz);
+
+            if (dist > 1.1) {
+              const spd = mole.speed;
+              mole.pos.x += (dx/dist) * spd * dt;
+              mole.pos.z += (dz/dist) * spd * dt;
+              mole.mesh.position.set(mole.pos.x, 0, mole.pos.z);
+              // Face player
+              mole.mesh.rotation.y = Math.atan2(dx, dz);
+            } else {
+              // Attack player
+              mole.attackTimer -= dt;
+              if (mole.attackTimer <= 0 && invincible <= 0) {
+                mole.attackTimer = mole.attackRate;
+                myHp = Math.max(0, myHp - mole.damage);
+                // Damage flash
+                if (dmgFlash) { dmgFlash.classList.add('active'); setTimeout(()=>dmgFlash.classList.remove('active'), 150); }
+                updateHud();
+                if (myHp <= 0) { endGame(); break; }
+              }
+            }
+          }
+        }
+
+        // Bullet tick
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          b.life -= dt;
+          b.mesh.position.addScaledVector(b.vel, dt);
+          let hitAny = false;
+          for (const mole of moles) {
+            if (mole.dead || b.hit) continue;
+            const bp = b.mesh.position;
+            const headC = new THREE.Vector3(mole.pos.x, mole.pos.y + 0.88, mole.pos.z);
+            const bodyC = new THREE.Vector3(mole.pos.x, mole.pos.y + 0.35, mole.pos.z);
+            const headHit = bp.distanceTo(headC) < 0.3;
+            const bodyHit = bp.distanceTo(bodyC) < 0.55;
+            if (headHit || bodyHit) {
+              b.hit = true; hitAny = true;
+              const dmg = headHit ? myWeapon.damage * 2 : myWeapon.damage;
+              hitMole(mole, dmg, headHit);
+              break;
+            }
+          }
+          if (b.life <= 0 || hitAny) { scene.remove(b.mesh); bullets.splice(i, 1); }
+        }
+      }
+
+      // Crouch/slide eye height
+      const targetEyeH = (crouching || sliding) ? CROUCH_EYE : EYE_H;
+      currentEyeH += (targetEyeH - currentEyeH) * Math.min(1, dt * 14);
+      camera.position.set(playerPos.x, playerPos.y + currentEyeH, playerPos.z);
+      camera.rotation.y = yaw; camera.rotation.x = pitch;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    /* ── Resize ── */
+    const onResize = () => { renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); };
+    window.addEventListener('resize', onResize);
+
+    return {
+      destroy() {
+        running = false;
+        if (document.pointerLockElement === canvas) document.exitPointerLock();
+        window.removeEventListener('keydown',  onKD);
+        window.removeEventListener('keyup',    onKU);
+        window.removeEventListener('resize',   onResize);
+        document.removeEventListener('contextmenu',      onContextMenu);
+        document.removeEventListener('click',            onDocClick);
+        document.removeEventListener('mousedown',        onMouseDown);
+        document.removeEventListener('mouseup',          onMouseUp);
+        document.removeEventListener('pointerlockchange',onPLChange);
+        document.removeEventListener('mousemove',        onMouseMove);
+        mouseHeld = false; scopeOut();
       }
     };
   }
