@@ -889,6 +889,19 @@
       background: rgba(0,0,0,0.58); cursor: pointer; pointer-events: all; gap: 10px;
     }
 
+    /* ── Map Vote ── */
+    .map-vote-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; width:min(380px,94vw); margin:4px 0; }
+    .map-card {
+      padding:10px 8px; border-radius:12px; border:2.5px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.08); cursor:pointer; text-align:center;
+      transition:border-color .15s, background .15s, transform .1s;
+      font-size:0.82rem; font-weight:700; user-select:none;
+    }
+    .map-card:hover { background:rgba(255,255,255,0.15); transform:translateY(-2px); }
+    .map-card.selected { border-color:#f5c542; background:rgba(245,197,66,0.18); }
+    .map-card-icon { font-size:1.6rem; display:block; margin-bottom:4px; }
+    .map-vote-status { font-size:0.78rem; opacity:0.65; text-align:center; min-height:1.1em; }
+
     /* ── Mole Defender ── */
     #screen-defender { padding: 0 !important; gap: 0 !important; }
     #screen-defender.active { display: block !important; position: fixed; inset: 0; z-index: 2; }
@@ -1748,6 +1761,23 @@
     <div class="weapon-active-label" id="active-weapon-label">Active: 🪵 Wood Sword</div>
     <div class="weapon-active-label" id="active-armor-label" style="margin-top:-8px;">🛡️ Armor: Leather (−10%)</div>
 
+    <!-- Map vote -->
+    <div style="font-size:0.78rem;opacity:0.5;text-align:center;margin:6px 0 2px;">🗺️ Vote for a map</div>
+    <div class="map-vote-grid" id="map-vote-grid">
+      <div class="map-card selected" id="map-card-classic" onclick="selectMap('classic')">
+        <span class="map-card-icon">🏛️</span>Classic
+      </div>
+      <div class="map-card" id="map-card-forest" onclick="selectMap('forest')">
+        <span class="map-card-icon">🌲</span>Forest
+      </div>
+      <div class="map-card" id="map-card-industrial" onclick="selectMap('industrial')">
+        <span class="map-card-icon">🏭</span>Industrial
+      </div>
+      <div class="map-card" id="map-card-lava" onclick="selectMap('lava')">
+        <span class="map-card-icon">🌋</span>Volcano
+      </div>
+    </div>
+
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       <button class="btn btn-primary"   onclick="hostArena()">⚔️ Create Room</button>
       <button class="btn btn-secondary" onclick="showSrvPanel('srv-joining')">🔗 Join Room</button>
@@ -1766,6 +1796,7 @@
     <div class="room-code" id="srv-code-display">------</div>
     <button class="btn btn-secondary" style="width:auto;padding:10px 24px;font-size:1rem;" onclick="copySrvCode()">📋 Copy Code</button>
     <p class="mp-status" id="srv-host-status">Waiting for opponent…</p>
+    <p class="map-vote-status" id="srv-map-vote-status">&nbsp;</p>
     <button class="btn btn-back" onclick="leaveServer()">← Cancel</button>
   </div>
 
@@ -4995,6 +5026,15 @@
 
   /* ── Server lobby ── */
   let _arenaPeer = null, _arenaConn = null, _arenaIsHost = false, _arenaInst = null;
+  let _arenaMapId = 'classic', _arenaJoinerVote = null;
+
+  const MAP_ICONS = { classic:'🏛️', forest:'🌲', industrial:'🏭', lava:'🌋' };
+  function selectMap(id) {
+    _arenaMapId = id;
+    document.querySelectorAll('.map-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('map-card-' + id);
+    if (card) card.classList.add('selected');
+  }
 
   function openServer() {
     const el = document.getElementById('srv-coin-count');
@@ -5030,6 +5070,9 @@
     const code = generateCode();
     document.getElementById('srv-code-display').textContent = code;
     document.getElementById('srv-host-status').textContent = 'Waiting for opponent…';
+    const mvStatus = document.getElementById('srv-map-vote-status');
+    if (mvStatus) mvStatus.textContent = `Your vote: ${MAP_ICONS[_arenaMapId]} ${_arenaMapId}`;
+    _arenaJoinerVote = null;
     if (_arenaPeer) { try { _arenaPeer.destroy(); } catch(e) {} }
     _arenaPeer = new Peer('wam-srv-' + code);
     _arenaPeer.on('error', () => hostArena());
@@ -5039,11 +5082,19 @@
       document.getElementById('srv-host-status').textContent = 'Opponent connected! Starting…';
       setTimeout(() => {
         if (_arenaConn) {
-          _arenaConn.send({ type: 'arena-sword', sword: activeSword });
-          _arenaConn.send({ type: 'arena-start' });
+          // Resolve map: if both voted same use it, otherwise random between the two
+          let resolvedMap = _arenaMapId;
+          if (_arenaJoinerVote && _arenaJoinerVote !== _arenaMapId) {
+            resolvedMap = Math.random() < 0.5 ? _arenaMapId : _arenaJoinerVote;
+          }
+          _arenaMapId = resolvedMap;
+          const wpnType = activeWeaponType === 'gun' ? 'gun' : 'sword';
+          const wpnId   = activeWeaponType === 'gun' ? activeGun : activeSword;
+          _arenaConn.send({ type: 'arena-weapon', wpnType, wpnId });
+          _arenaConn.send({ type: 'arena-start', mapId: resolvedMap });
           _launchArena('red');
         }
-      }, 600);
+      }, 700);
     });
   }
 
@@ -5059,7 +5110,10 @@
       _setupArenaConn();
       _arenaConn.on('open', () => {
         document.getElementById('srv-join-status').textContent = 'Connected! Waiting for host…';
-        _arenaConn.send({ type: 'arena-sword', sword: activeSword });
+        _arenaConn.send({ type: 'arena-vote', mapId: _arenaMapId });
+        const wpnType = activeWeaponType === 'gun' ? 'gun' : 'sword';
+        const wpnId   = activeWeaponType === 'gun' ? activeGun : activeSword;
+        _arenaConn.send({ type: 'arena-weapon', wpnType, wpnId });
       });
     });
     _arenaPeer.on('error', () => {
@@ -5069,7 +5123,12 @@
 
   function _setupArenaConn() {
     _arenaConn.on('data', data => {
-      if (data.type === 'arena-start') {
+      if (data.type === 'arena-vote') {
+        _arenaJoinerVote = data.mapId;
+        const mv = document.getElementById('srv-map-vote-status');
+        if (mv) mv.textContent = `Your: ${MAP_ICONS[_arenaMapId]} · They voted: ${MAP_ICONS[data.mapId]||'?'} ${data.mapId}`;
+      } else if (data.type === 'arena-start') {
+        if (data.mapId) _arenaMapId = data.mapId;
         _launchArena('blue');
       } else if (_arenaInst) {
         _arenaInst.onMsg(data);
@@ -5082,7 +5141,7 @@
 
   function _launchArena(side) {
     goTo('screen-arena');
-    setTimeout(() => { _arenaInst = _buildArena(side); }, 50);
+    setTimeout(() => { _arenaInst = _buildArena(side, _arenaMapId || 'classic'); }, 50);
   }
 
   function leaveArena() {
@@ -5100,7 +5159,77 @@
     openServer();
   }
 
-  function _buildArena(side) {
+  /* ── Map definitions ── */
+  const ARENA_MAPS = {
+    classic: {
+      name:'Classic', sky:0x9bb8cc, fog:0xaabfcc, fogD:0.018,
+      floor:0x8899aa, grid:true, wall:0x333344, ambInt:0.75, sunCol:0xfff8ee, sunInt:1.2,
+      obstacles:[
+        {x:6,  z:6,  w:1.5,d:1.5,h:4.5,col:0x2a2a38},
+        {x:-6, z:6,  w:1.5,d:1.5,h:4.5,col:0x2a2a38},
+        {x:6,  z:-6, w:1.5,d:1.5,h:4.5,col:0x2a2a38},
+        {x:-6, z:-6, w:1.5,d:1.5,h:4.5,col:0x2a2a38},
+        {x:0,  z:0,  w:1.5,d:1.5,h:4.5,col:0x2a2a38},
+        {x:11, z:0,  w:4,  d:4,  h:1.5, col:0x444455},
+        {x:-11,z:0,  w:4,  d:4,  h:1.5, col:0x444455},
+        {x:0,  z:11, w:4,  d:4,  h:1.5, col:0x444455},
+        {x:0,  z:-11,w:4,  d:4,  h:1.5, col:0x444455},
+      ]
+    },
+    forest: {
+      name:'Forest', sky:0x4a8040, fog:0x548a46, fogD:0.025,
+      floor:0x3a6a22, grid:false, wall:0x2a4020, ambInt:0.9, sunCol:0xffffff, sunInt:1.0,
+      obstacles:[
+        {x:7,  z:7,  w:1.4,d:1.4,h:0.9,col:0x5a3a18,cyl:true},
+        {x:-7, z:-7, w:1.4,d:1.4,h:0.9,col:0x5a3a18,cyl:true},
+        {x:7,  z:-7, w:1.4,d:1.4,h:0.9,col:0x5a3a18,cyl:true},
+        {x:-7, z:7,  w:1.4,d:1.4,h:0.9,col:0x5a3a18,cyl:true},
+        {x:0,  z:8,  w:9,  d:0.9,h:0.8,col:0x4a2a0a},
+        {x:0,  z:-8, w:9,  d:0.9,h:0.8,col:0x4a2a0a},
+        {x:12, z:0,  w:2.2,d:2.2,h:1.4,col:0x888878},
+        {x:-12,z:0,  w:2.2,d:2.2,h:1.4,col:0x888878},
+        {x:0,  z:0,  w:5,  d:5,  h:1.0, col:0x4a7a2a},
+      ]
+    },
+    industrial: {
+      name:'Industrial', sky:0x556677, fog:0x667788, fogD:0.016,
+      floor:0x445566, grid:true, wall:0x334455, ambInt:0.65, sunCol:0xffeedd, sunInt:1.1,
+      obstacles:[
+        {x:0,  z:0,  w:8,  d:4,  h:1.5, col:0x556677},
+        {x:8,  z:8,  w:2,  d:2,  h:2.0, col:0xaa8822},
+        {x:8.5,z:8,  w:1.2,d:1.2,h:4.0, col:0xcc9933},
+        {x:-8, z:-8, w:2,  d:2,  h:2.0, col:0xaa8822},
+        {x:8,  z:-8, w:2,  d:2,  h:4.0, col:0xaa6611},
+        {x:-8, z:8,  w:2,  d:2,  h:2.0, col:0xcc9933},
+        {x:0,  z:14, w:14, d:1.5,h:3.0, col:0x556677},
+        {x:0,  z:-14,w:14, d:1.5,h:3.0, col:0x556677},
+        {x:14, z:0,  w:1.5,d:14, h:3.0, col:0x556677},
+        {x:-14,z:0,  w:1.5,d:14, h:3.0, col:0x556677},
+        {x:5,  z:0,  w:1.5,d:3,  h:0.8, col:0x556677},
+        {x:-5, z:0,  w:1.5,d:3,  h:0.8, col:0x556677},
+      ]
+    },
+    lava: {
+      name:'Volcano', sky:0x331100, fog:0x441100, fogD:0.022,
+      floor:0x221100, grid:false, wall:0x330800, ambInt:0.55, sunCol:0xff6600, sunInt:0.9,
+      obstacles:[
+        {x:7,  z:7,  w:2.0,d:2.0,h:6.0,col:0x4a1800},
+        {x:-7, z:7,  w:2.0,d:2.0,h:6.0,col:0x3a1200},
+        {x:7,  z:-7, w:2.0,d:2.0,h:6.0,col:0x4a1800},
+        {x:-7, z:-7, w:2.0,d:2.0,h:6.0,col:0x3a1200},
+        {x:0,  z:0,  w:6,  d:6,  h:0.6, col:0x662200},
+        {x:11, z:11, w:3.5,d:3.5,h:0.9, col:0x551a00},
+        {x:-11,z:-11,w:3.5,d:3.5,h:0.9, col:0x551a00},
+        {x:11, z:-11,w:3,  d:3,  h:1.3, col:0x661a00},
+        {x:-11,z:11, w:3,  d:3,  h:1.3, col:0x661a00},
+        {x:0,  z:9,  w:2,  d:7,  h:0.5, col:0x4a1800},
+        {x:0,  z:-9, w:2,  d:7,  h:0.5, col:0x4a1800},
+      ]
+    },
+  };
+
+  function _buildArena(side, mapId) {
+    const mapDef = ARENA_MAPS[mapId] || ARENA_MAPS.classic;
     const canvas = document.getElementById('arena-canvas');
 
     /* ── Renderer ── */
@@ -5112,8 +5241,8 @@
 
     /* ── Scene ── */
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9bb8cc);
-    scene.fog = new THREE.FogExp2(0xaabfcc, 0.018);
+    scene.background = new THREE.Color(mapDef.sky);
+    scene.fog = new THREE.FogExp2(mapDef.fog, mapDef.fogD);
 
     /* ── Camera ── */
     const EYE_H = 1.7;
@@ -5121,59 +5250,119 @@
     camera.rotation.order = 'YXZ';
 
     /* ── Lights ── */
-    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-    const arenaDir = new THREE.DirectionalLight(0xfff8ee, 1.2);
-    arenaDir.position.set(8, 18, 6);
-    arenaDir.castShadow = true;
-    scene.add(arenaDir);
-    [[0,6,0,1.2,20],[12,3,12,0.8,14],[-12,3,-12,0.8,14],[12,3,-12,0.8,14],[-12,3,12,0.8,14]].forEach(([x,y,z,i,r]) => {
-      const l = new THREE.PointLight(0xffffff, i, r);
-      l.position.set(x, y, z);
-      scene.add(l);
+    scene.add(new THREE.AmbientLight(0xffffff, mapDef.ambInt));
+    const arenaDir = new THREE.DirectionalLight(mapDef.sunCol, mapDef.sunInt);
+    arenaDir.position.set(8, 18, 6); arenaDir.castShadow = true; scene.add(arenaDir);
+    [[0,6,0,1.0,22],[12,3,12,0.7,14],[-12,3,-12,0.7,14]].forEach(([x,y,z,i,r]) => {
+      const l = new THREE.PointLight(0xffffff, i, r); l.position.set(x,y,z); scene.add(l);
     });
+    // Lava glow
+    if (mapId === 'lava') {
+      [[0,0.3,0,2.5,12],[10,0.3,10,1.5,8],[-10,0.3,-10,1.5,8]].forEach(([x,y,z,i,r]) => {
+        const l = new THREE.PointLight(0xff4400, i, r); l.position.set(x,y,z); scene.add(l);
+      });
+    }
 
     /* ── Floor ── */
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(40, 40),
-      new THREE.MeshLambertMaterial({ color: 0x8899aa })
+      new THREE.MeshLambertMaterial({ color: mapDef.floor })
     );
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-    const grid = new THREE.GridHelper(40, 20, 0x333344, 0x333344);
-    grid.material.opacity = 0.3; grid.material.transparent = true;
-    scene.add(grid);
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+    // Lava texture patches
+    if (mapId === 'lava') {
+      [[0,0,8,8],[0,14,6,2],[14,0,2,6],[-14,0,2,6],[0,-14,6,2]].forEach(([x,z,w,d]) => {
+        const lp = new THREE.Mesh(new THREE.PlaneGeometry(w,d), new THREE.MeshBasicMaterial({color:0xff3300}));
+        lp.rotation.x = -Math.PI/2; lp.position.set(x,0.01,z); scene.add(lp);
+      });
+    }
+    // Forest undergrowth patches
+    if (mapId === 'forest') {
+      [[5,5,2],[-5,5,2],[5,-5,2],[-5,-5,2],[-10,10,3],[10,-10,3]].forEach(([x,z,r]) => {
+        const p = new THREE.Mesh(new THREE.PlaneGeometry(r*2,r*2), new THREE.MeshLambertMaterial({color:0x2a5a18}));
+        p.rotation.x = -Math.PI/2; p.position.set(x,0.01,z); scene.add(p);
+      });
+    }
+
+    if (mapDef.grid) {
+      const grid = new THREE.GridHelper(40, 20, mapDef.wall, mapDef.wall);
+      grid.material.opacity = 0.28; grid.material.transparent = true; scene.add(grid);
+    }
+
+    /* ── AABB Collider system ── */
+    const PLAYER_R = 0.42;
+    const colliders = []; // {minX,maxX,minZ,maxZ,top}
+
+    function addCollider(cx, cz, w, d, h) {
+      colliders.push({ minX:cx-w/2, maxX:cx+w/2, minZ:cz-d/2, maxZ:cz+d/2, top:h });
+    }
+
+    function getGroundY(px, pz) {
+      let gy = 0;
+      for (const c of colliders) {
+        const nx = Math.max(c.minX, Math.min(c.maxX, px));
+        const nz = Math.max(c.minZ, Math.min(c.maxZ, pz));
+        if ((px-nx)*(px-nx)+(pz-nz)*(pz-nz) < PLAYER_R*PLAYER_R)
+          gy = Math.max(gy, c.top);
+      }
+      return gy;
+    }
+
+    function pushOutColliders(px, pz, py) {
+      let ox = px, oz = pz;
+      for (const c of colliders) {
+        if (py > c.top + 0.05) continue; // above this box, no horizontal block
+        const nx = Math.max(c.minX, Math.min(c.maxX, ox));
+        const nz = Math.max(c.minZ, Math.min(c.maxZ, oz));
+        const dx = ox - nx, dz = oz - nz;
+        const d2 = dx*dx + dz*dz;
+        if (d2 < PLAYER_R*PLAYER_R) {
+          const d = Math.sqrt(d2) || 0.0001;
+          ox = nx + (dx/d)*PLAYER_R;
+          oz = nz + (dz/d)*PLAYER_R;
+        }
+      }
+      ox = Math.max(-19.5, Math.min(19.5, ox));
+      oz = Math.max(-19.5, Math.min(19.5, oz));
+      return [ox, oz];
+    }
 
     /* ── Walls ── */
-    const wallMat = new THREE.MeshLambertMaterial({ color: 0x333344 });
-    function addWall(px, pz, w, d) {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, 5, d), wallMat);
-      m.position.set(px, 2.5, pz);
-      m.castShadow = true; m.receiveShadow = true;
-      scene.add(m);
-    }
-    addWall(0,  20, 40, 1);
-    addWall(0, -20, 40, 1);
-    addWall( 20, 0, 1, 40);
-    addWall(-20, 0, 1, 40);
+    const wallMat = new THREE.MeshLambertMaterial({ color: mapDef.wall });
+    [[0,20,40,1],[0,-20,40,1],[20,0,1,40],[-20,0,1,40]].forEach(([px,pz,w,d]) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,5,d), wallMat);
+      m.position.set(px,2.5,pz); m.castShadow = true; m.receiveShadow = true; scene.add(m);
+    });
 
-    /* ── Cover pillars ── */
-    const pillarMat = new THREE.MeshLambertMaterial({ color: 0x2a2a38 });
-    [[6,6],[-6,6],[6,-6],[-6,-6],[0,0]].forEach(([px,pz]) => {
-      const p = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4.5, 1.5), pillarMat);
-      p.position.set(px, 2.25, pz);
-      p.castShadow = true; scene.add(p);
+    /* ── Map obstacles ── */
+    mapDef.obstacles.forEach(o => {
+      let mesh;
+      if (o.cyl) {
+        // Cylinder stump
+        const mat = new THREE.MeshLambertMaterial({ color: o.col });
+        mesh = new THREE.Mesh(new THREE.CylinderGeometry(o.w/2, o.w/2*1.1, o.h, 10), mat);
+        mesh.position.set(o.x, o.h/2, o.z);
+        // Add tree trunk above (decorative, no collision)
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 3.5, 8), new THREE.MeshLambertMaterial({color:0x3a2010}));
+        trunk.position.set(o.x, o.h + 1.75, o.z); trunk.castShadow = true; scene.add(trunk);
+        const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.2, 8), new THREE.MeshLambertMaterial({color:0x1a5a18}));
+        leaves.position.set(o.x, o.h + 4.7, o.z); scene.add(leaves);
+      } else {
+        mesh = new THREE.Mesh(new THREE.BoxGeometry(o.w, o.h, o.d), new THREE.MeshLambertMaterial({ color: o.col }));
+        mesh.position.set(o.x, o.h/2, o.z);
+      }
+      mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh);
+      addCollider(o.x, o.z, o.w, o.d, o.h);
     });
 
     /* ── Spawn pads ── */
     function addPad(px, pz, color) {
-      const pad = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), new THREE.MeshLambertMaterial({ color }));
-      pad.rotation.x = -Math.PI / 2;
-      pad.position.set(px, 0.01, pz);
-      scene.add(pad);
+      const pad = new THREE.Mesh(new THREE.PlaneGeometry(3,3), new THREE.MeshLambertMaterial({color}));
+      pad.rotation.x = -Math.PI/2; pad.position.set(px,0.02,pz); scene.add(pad);
     }
-    addPad(0,  14, 0xcc2222); // red
-    addPad(0, -14, 0x2255cc); // blue
+    addPad(0,  14, 0xcc2222);
+    addPad(0, -14, 0x2255cc);
 
     /* ── Player state ── */
     const mySpawn   = new THREE.Vector3(0, 0, side === 'red' ?  14 : -14);
@@ -5363,11 +5552,11 @@
     const onKD = e => {
       keys[e.code] = true;
       if (MOVE_KEYS.has(e.code)) e.preventDefault();
-      if (e.code === 'Space' && playerPos.y <= 0.01 && !isDead && !gameOver) {
-        if (sliding) { sliding = false; crouching = false; } // cancel slide on jump
+      if (e.code === 'Space' && !isDead && !gameOver && playerPos.y <= getGroundY(playerPos.x,playerPos.z)+0.08) {
+        if (sliding) { sliding = false; crouching = false; }
         velY = JUMP_FORCE;
       }
-      if (e.code === 'KeyC' && !isDead && !gameOver && playerPos.y <= 0.01) {
+      if (e.code === 'KeyC' && !isDead && !gameOver && playerPos.y <= getGroundY(playerPos.x,playerPos.z)+0.08) {
         if (sliding) return; // already sliding, ignore
         const fwd    = (keys['KeyW']||keys['ArrowUp']    ? 1:0) - (keys['KeyS']||keys['ArrowDown']  ? 1:0);
         const strafe = (keys['KeyD']||keys['ArrowRight'] ? 1:0) - (keys['KeyA']||keys['ArrowLeft']  ? 1:0);
@@ -5541,9 +5730,13 @@
         // Slide tick
         if (sliding) {
           slideTimer -= dt;
-          const t = Math.max(0, slideTimer / SLIDE_DUR); // 1→0 decel
-          playerPos.x = Math.max(-19, Math.min(19, playerPos.x + slideVX * t * dt));
-          playerPos.z = Math.max(-19, Math.min(19, playerPos.z + slideVZ * t * dt));
+          const t = Math.max(0, slideTimer / SLIDE_DUR);
+          let [nx, nz] = pushOutColliders(
+            playerPos.x + slideVX * t * dt,
+            playerPos.z + slideVZ * t * dt,
+            playerPos.y
+          );
+          playerPos.x = nx; playerPos.z = nz;
           if (slideTimer <= 0) { sliding = false; }
         }
 
@@ -5557,15 +5750,20 @@
             const mag = Math.sqrt(dx*dx + dz*dz);
             if (mag > 0) { dx /= mag; dz /= mag; }
             const spd = crouching ? SPEED * 0.5 : SPEED;
-            playerPos.x = Math.max(-19, Math.min(19, playerPos.x + dx*spd*dt));
-            playerPos.z = Math.max(-19, Math.min(19, playerPos.z + dz*spd*dt));
+            const [nx2, nz2] = pushOutColliders(
+              playerPos.x + dx*spd*dt,
+              playerPos.z + dz*spd*dt,
+              playerPos.y
+            );
+            playerPos.x = nx2; playerPos.z = nz2;
           }
         }
 
-        // Jump / gravity
+        // Gravity + land on obstacles
         velY += GRAVITY * dt;
-        playerPos.y = Math.max(0, playerPos.y + velY*dt);
-        if (playerPos.y <= 0) velY = 0;
+        playerPos.y += velY * dt;
+        const gY = getGroundY(playerPos.x, playerPos.z);
+        if (playerPos.y <= gY) { playerPos.y = gY; velY = 0; }
 
         // Sync position
         posTimer += dt;
