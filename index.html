@@ -437,11 +437,114 @@
       content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.2);
     }
     /* Home user bar */
+    /* ══════════════ NEW HOME SCREEN ══════════════ */
+    #screen-home {
+      background: none;
+      position: relative;
+      overflow-y: auto;
+      max-height: 100vh;
+      gap: 0;
+      padding: 0;
+      justify-content: flex-start;
+    }
+    .home-bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .home-content {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; padding: 12px 12px 24px; width: 100%; min-height: 100vh;
+    }
+    /* Title sign */
+    .home-sign {
+      position: relative; margin: 4px 0 2px;
+      background: linear-gradient(160deg,#a0632a,#7a4418,#8b5523);
+      border: 4px solid #5a3010; border-radius: 14px;
+      padding: 10px 32px 12px; text-align: center;
+      box-shadow: 0 6px 0 #3d1e06, 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .home-sign::before, .home-sign::after {
+      content: ''; position: absolute; top: 50%; width: 18px; height: 44px;
+      background: linear-gradient(#8b6040,#5a3010);
+      border: 2px solid #3d1e06; border-radius: 4px;
+      transform: translateY(-50%);
+    }
+    .home-sign::before { left: -22px; }
+    .home-sign::after  { right: -22px; }
+    .home-sign-text {
+      font-family: 'Arial Black', 'Impact', sans-serif;
+      line-height: 1; letter-spacing: 2px; user-select: none;
+    }
+    .home-sign-whack {
+      font-size: clamp(2rem,7vw,3.6rem); font-weight: 900;
+      color: #f5c542; text-shadow: 3px 3px 0 #8b4513, 0 0 20px rgba(245,197,66,0.5);
+      display: block;
+    }
+    .home-sign-a {
+      font-size: clamp(1rem,4vw,1.8rem); font-weight: 900;
+      color: #fff; text-shadow: 2px 2px 0 #5a3010; display: block; margin: -4px 0;
+    }
+    .home-sign-mole {
+      font-size: clamp(2.2rem,8vw,4.2rem); font-weight: 900;
+      color: #ff6b2b; text-shadow: 3px 3px 0 #8b1500, 0 0 20px rgba(255,100,0,0.5);
+      display: block;
+    }
+    /* Stats row */
+    .home-stats {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      justify-content: center;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+      border: 2px solid rgba(255,255,255,0.15); border-radius: 12px;
+      padding: 6px 16px;
+    }
+    /* User bar */
     .home-user-bar {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; background: rgba(0,0,0,0.25);
-      padding: 8px 18px; border-radius: 12px; width: min(360px, 95vw);
+      gap: 10px; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+      border: 2px solid rgba(255,255,255,0.15);
+      padding: 6px 16px; border-radius: 12px; width: min(480px, 95vw);
     }
+    /* Button grid */
+    .home-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: min(560px, 96vw);
+    }
+    .hbtn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; padding: 13px 6px;
+      border-radius: 12px;
+      border: 3px solid #f5c542;
+      box-shadow: 0 0 0 1.5px #a07010, 0 5px 0 #a07010, 0 7px 10px rgba(0,0,0,0.45);
+      font-family: 'Arial Black', 'Impact', Arial, sans-serif;
+      font-size: clamp(0.6rem, 2.2vw, 0.82rem);
+      font-weight: 900; letter-spacing: 0.5px;
+      color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+      cursor: pointer; transition: transform .1s, box-shadow .1s;
+      text-transform: uppercase;
+    }
+    .hbtn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 1.5px #a07010, 0 1px 0 #a07010, 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .hbtn-icon { font-size: 1.3em; flex-shrink: 0; }
+    .hbtn-green  { background: linear-gradient(160deg,#6dbf5a,#3d8c2a); }
+    .hbtn-blue   { background: linear-gradient(160deg,#5a9de8,#2a5dbf); }
+    .hbtn-purple { background: linear-gradient(160deg,#9060d8,#5a2aaa); }
+    .hbtn-orange { background: linear-gradient(160deg,#e8a040,#b86010); }
+    .hbtn-teal   { background: linear-gradient(160deg,#3abfc8,#0a8898); }
+    .hbtn-blue2  { background: linear-gradient(160deg,#4878d8,#1a40b0); }
+    .hbtn-pink   { background: linear-gradient(160deg,#e84888,#b81850); }
+    .hbtn-gold   { background: linear-gradient(160deg,#e8c830,#b09000); color:#1a1a1a; text-shadow:1px 1px 0 rgba(255,255,255,0.3); }
+    .hbtn-red    { background: linear-gradient(160deg,#e04040,#b01010); }
+    .hbtn-teal2  { background: linear-gradient(160deg,#38b890,#088858); }
+    .hbtn-purple2{ background: linear-gradient(160deg,#9050d0,#5820a0); }
+    .hbtn-slate  { background: linear-gradient(160deg,#6080b0,#385080); }
+    .hbtn-yellow { background: linear-gradient(160deg,#f0c820,#c09000); color:#1a1a1a; text-shadow:1px 1px 0 rgba(255,255,255,0.3); }
+    .hbtn-green2 { background: linear-gradient(160deg,#50b040,#208020); }
+    .hbtn-amber  { background: linear-gradient(160deg,#e87020,#b84000); }
+    /* ══════════════════════════════════════════════ */
 
     /* ── Google auth section ── */
     .google-user-card {
@@ -1112,42 +1215,166 @@
 
 <!-- ═══════════════════ HOME SCREEN ═══════════════════ -->
 <div class="screen" id="screen-home">
-  <div class="mole-icon">🐹</div>
-  <div class="title">Whack-a-Mole!</div>
-  <div class="subtitle">How fast are your reflexes?</div>
-  <!-- User bar: shows name + logout when signed in, or Log In / Sign Up when guest -->
-  <div class="home-user-bar">
-    <div id="home-user-bar"></div>
-    <div id="home-auth-actions" style="display:flex;gap:8px;"></div>
+
+  <!-- Nature background -->
+  <div class="home-bg">
+    <svg width="100%" height="100%" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="hsky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#2d8fcc"/>
+          <stop offset="55%"  stop-color="#6bbde0"/>
+          <stop offset="100%" stop-color="#a8d8f0"/>
+        </linearGradient>
+        <linearGradient id="hground" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#6ab85a"/>
+          <stop offset="100%" stop-color="#3d7828"/>
+        </linearGradient>
+      </defs>
+      <!-- Sky -->
+      <rect width="1200" height="800" fill="url(#hsky)"/>
+      <!-- Clouds -->
+      <ellipse cx="160" cy="90"  rx="100" ry="38" fill="white" opacity="0.92"/>
+      <ellipse cx="220" cy="78"  rx="80"  ry="30" fill="white" opacity="0.88"/>
+      <ellipse cx="750" cy="75"  rx="110" ry="40" fill="white" opacity="0.90"/>
+      <ellipse cx="820" cy="65"  rx="75"  ry="28" fill="white" opacity="0.85"/>
+      <ellipse cx="1080" cy="95" rx="90"  ry="34" fill="white" opacity="0.88"/>
+      <ellipse cx="1020" cy="80" rx="60"  ry="24" fill="white" opacity="0.82"/>
+      <!-- Back mountains -->
+      <polygon points="0,480 200,220 400,480"    fill="#9ab8cc"/>
+      <polygon points="150,480 380,180 610,480"  fill="#8aaabb"/>
+      <polygon points="420,480 640,160 860,480"  fill="#9bb5c8"/>
+      <polygon points="600,480 830,185 1060,480" fill="#8aadbc"/>
+      <polygon points="850,480 1050,200 1200,420 1200,480" fill="#95b2c5"/>
+      <!-- Snow caps -->
+      <polygon points="200,220 170,310 230,310"  fill="white" opacity="0.96"/>
+      <polygon points="380,180 348,275 412,275"  fill="white" opacity="0.96"/>
+      <polygon points="640,160 607,258 673,258"  fill="white" opacity="0.96"/>
+      <polygon points="830,185 797,278 863,278"  fill="white" opacity="0.96"/>
+      <polygon points="1050,200 1018,292 1082,292" fill="white" opacity="0.96"/>
+      <!-- Ground -->
+      <rect x="0" y="470" width="1200" height="330" fill="url(#hground)"/>
+      <rect x="0" y="470" width="1200" height="40"  fill="#7acc68" opacity="0.6"/>
+      <!-- Trees left -->
+      <polygon points="20,470 55,310 90,470"  fill="#245c18"/>
+      <polygon points="60,470 90,330 120,470" fill="#2d6e20"/>
+      <polygon points="95,470 122,345 150,470" fill="#245c18"/>
+      <!-- Trees right -->
+      <polygon points="1050,470 1080,315 1110,470" fill="#245c18"/>
+      <polygon points="1090,470 1118,330 1148,470" fill="#2d6e20"/>
+      <polygon points="1125,470 1150,350 1178,470" fill="#245c18"/>
+      <!-- Rocks left/right -->
+      <ellipse cx="30"   cy="480" rx="40" ry="18" fill="#888"/>
+      <ellipse cx="1170" cy="480" rx="40" ry="18" fill="#888"/>
+      <!-- Fence posts -->
+      <rect x="0"    y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="120"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="240"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="360"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="480"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="600"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="720"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="840"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="960"  y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="1080" y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <rect x="1192" y="488" width="8" height="55" rx="3" fill="#7a4e28"/>
+      <!-- Fence rails -->
+      <rect x="0" y="500" width="1200" height="9" rx="4" fill="#8b5e30"/>
+      <rect x="0" y="524" width="1200" height="9" rx="4" fill="#8b5e30"/>
+      <!-- River/path at bottom -->
+      <ellipse cx="580" cy="620" rx="180" ry="35" fill="#4a9ae0" opacity="0.55"/>
+      <!-- Flowers -->
+      <circle cx="300" cy="495" r="5" fill="#ff6b9d" opacity="0.8"/>
+      <circle cx="450" cy="490" r="4" fill="#fff" opacity="0.8"/>
+      <circle cx="700" cy="492" r="5" fill="#ffcc00" opacity="0.8"/>
+      <circle cx="900" cy="488" r="4" fill="#ff8844" opacity="0.8"/>
+    </svg>
   </div>
-  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;">
-    <div class="coin-display">🪙 <span id="coin-count">0</span></div>
-    <div class="level-row">
-      <span class="level-badge">Lv.<span id="home-level">1</span></span>
-      <div class="xp-col">
-        <span class="rank-text" id="home-rank">Apprentice</span>
-        <div class="xp-bar-wrap"><div class="xp-bar" id="home-xp-bar" style="width:0%"></div></div>
-        <span class="xp-text" id="home-xp-text">0 / 100 XP</span>
+
+  <!-- All content sits above the background -->
+  <div class="home-content">
+
+    <!-- User bar -->
+    <div class="home-user-bar">
+      <div id="home-user-bar"></div>
+      <div id="home-auth-actions" style="display:flex;gap:8px;"></div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="home-stats">
+      <div class="coin-display">🪙 <span id="coin-count">0</span></div>
+      <div class="level-row">
+        <span class="level-badge">Lv.<span id="home-level">1</span></span>
+        <div class="xp-col">
+          <span class="rank-text" id="home-rank">Apprentice</span>
+          <div class="xp-bar-wrap"><div class="xp-bar" id="home-xp-bar" style="width:0%"></div></div>
+          <span class="xp-text" id="home-xp-text">0 / 100 XP</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button class="btn btn-trade"     onclick="goTo('screen-trade')" style="width:115px;padding:14px 8px;font-size:0.9rem;">🐾 Pet Trade</button>
-    <button class="btn btn-primary"   onclick="goTo('screen-mode')" style="width:150px;padding:18px 8px;font-size:1.1rem;">Single Player</button>
-    <button class="btn btn-secondary" onclick="goTo('screen-multi')" style="width:115px;padding:14px 8px;font-size:0.9rem;">👥 Multi</button>
-  </div>
-  <button class="btn btn-secondary" onclick="openShop()">🛒 Shop</button>
-  <button class="btn btn-egg"       onclick="openEggShop()">🥚 Egg Shop</button>
-  <button class="btn btn-codes"     onclick="openCodesModal()">🎁 Codes</button>
-  <button class="btn btn-skins"     onclick="openSkinShop()">🎨 Skins</button>
-  <button class="btn btn-lobby"     onclick="openLobby()">🏠 3D Lobby</button>
-  <button class="btn btn-server"    onclick="openServer()">⚔️ Server</button>
-  <button class="btn btn-story"     onclick="openStory()">📖 Story Mode</button>
-  <button class="btn btn-quests"    onclick="openQuests()">📋 Quests</button>
-  <button class="btn btn-suits"      onclick="openSuitShop()">👔 Suit Shop</button>
-  <button class="btn btn-coinshop"   onclick="openCoinShop()">💳 Buy Coins</button>
-  <button class="btn btn-minigames"  onclick="openMinigames()">🎮 Minigames</button>
-  <button class="btn btn-songs"      onclick="openSongShop()">🎵 Music</button>
+
+    <!-- Wooden title sign -->
+    <div class="home-sign">
+      <div class="home-sign-text">
+        <span class="home-sign-whack">WHACK</span>
+        <span class="home-sign-a">A</span>
+        <span class="home-sign-mole">MOLE</span>
+      </div>
+    </div>
+
+    <!-- 3-column button grid -->
+    <div class="home-btn-grid">
+      <button class="hbtn hbtn-green"   onclick="goTo('screen-mode')">
+        <span class="hbtn-icon">👤</span>Singleplayer
+      </button>
+      <button class="hbtn hbtn-blue"    onclick="goTo('screen-multi')">
+        <span class="hbtn-icon">👥</span>Multiplayer
+      </button>
+      <button class="hbtn hbtn-purple"  onclick="openShop()">
+        <span class="hbtn-icon">🛒</span>Shop
+      </button>
+
+      <button class="hbtn hbtn-orange"  onclick="openEggShop()">
+        <span class="hbtn-icon">🥚</span>Pet Shop
+      </button>
+      <button class="hbtn hbtn-teal"    onclick="goTo('screen-trade')">
+        <span class="hbtn-icon">🐾</span>Pet Trade
+      </button>
+      <button class="hbtn hbtn-blue2"   onclick="openCodesModal()">
+        <span class="hbtn-icon">🎁</span>Codes
+      </button>
+
+      <button class="hbtn hbtn-pink"    onclick="openSkinShop()">
+        <span class="hbtn-icon">🎨</span>Skins
+      </button>
+      <button class="hbtn hbtn-gold"    onclick="openLobby()">
+        <span class="hbtn-icon">🏠</span>3D Lobby
+      </button>
+      <button class="hbtn hbtn-red"     onclick="openServer()">
+        <span class="hbtn-icon">⚔️</span>Server
+      </button>
+
+      <button class="hbtn hbtn-teal2"   onclick="openStory()">
+        <span class="hbtn-icon">📖</span>Story Mode
+      </button>
+      <button class="hbtn hbtn-purple2" onclick="openQuests()">
+        <span class="hbtn-icon">📋</span>Quests
+      </button>
+      <button class="hbtn hbtn-slate"   onclick="openSuitShop()">
+        <span class="hbtn-icon">👔</span>Suit Shop
+      </button>
+
+      <button class="hbtn hbtn-yellow"  onclick="openCoinShop()">
+        <span class="hbtn-icon">💰</span>Buy Coins
+      </button>
+      <button class="hbtn hbtn-green2"  onclick="openMinigames()">
+        <span class="hbtn-icon">🎮</span>Minigames
+      </button>
+      <button class="hbtn hbtn-amber"   onclick="openSongShop()">
+        <span class="hbtn-icon">🎵</span>Music
+      </button>
+    </div>
+
+  </div><!-- end .home-content -->
 </div>
 
 <!-- ═══════════════════ POWER-UP SHOP ═══════════════════ -->
