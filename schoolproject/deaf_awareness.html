@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Deaf Awareness World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;font-family:'Segoe UI',Tahoma,sans-serif;overflow:hidden;touch-action:none}
+#app{width:100vw;height:100vh;position:relative}
+canvas#game{display:block;width:100%;height:100%}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:1.5rem}
+#device-screen{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e)}
+#menu-screen{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);overflow-y:auto;justify-content:flex-start;padding-top:2rem}
+.hidden{display:none!important}
+h1.title{color:#e94560;font-size:clamp(1.4rem,5vw,2.6rem);text-shadow:0 0 20px #e94560;text-align:center;margin-bottom:.4rem}
+.sub{color:#a8a8b3;font-size:clamp(.72rem,2vw,.92rem);text-align:center;margin-bottom:2rem}
+.cards{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.card{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:1.6rem 1.8rem;cursor:pointer;text-align:center;color:#fff;transition:all .3s;min-width:145px}
+.card:hover,.card:active{transform:scale(1.06) translateY(-3px);border-color:#a855f7;background:rgba(168,85,247,.2)}
+.card .ico{font-size:2.5rem;margin-bottom:.5rem}
+.card h3{font-size:.95rem;margin-bottom:.2rem}
+.card p{font-size:.68rem;color:#aaa}
+.btn{background:linear-gradient(135deg,#0f3460,#533483);color:#fff;border:none;padding:.75rem 2rem;border-radius:28px;font-size:.95rem;cursor:pointer;transition:all .3s;margin:.35rem}
+.btn:hover{transform:scale(1.04);box-shadow:0 5px 20px rgba(83,52,131,.5)}
+.sec{color:#fff;background:rgba(255,255,255,.1);padding:4px 15px;border-radius:18px;font-size:.75rem;margin:1rem 0 .6rem;display:inline-block}
+
+/* ── POINTER LOCK OVERLAY ── */
+#lock-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;
+  z-index:50;cursor:pointer;flex-direction:column;gap:1rem;
+}
+#lock-overlay.show{display:flex}
+.lock-box{background:rgba(0,0,0,.85);color:#fff;padding:1.8rem 2.8rem;border-radius:18px;text-align:center;border:2px solid rgba(255,255,255,.2);font-size:1.1rem}
+.lock-box small{display:block;font-size:.72rem;color:#aaa;margin-top:.4rem}
+
+/* ── CROSSHAIR ── */
+#crosshair{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:20px;height:20px;pointer-events:none;z-index:11;display:none;
+}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,255,255,.9);border-radius:2px}
+#crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+#crosshair::after{width:100%;height:2px;top:50%;transform:translateY(-50%)}
+
+/* ── HUD ── */
+#hud{position:absolute;inset:0;pointer-events:none;z-index:10}
+#role-badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.8);color:#fff;padding:6px 14px;border-radius:18px;font-size:.76rem;border:2px solid #e94560}
+#country-badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:5px 14px;border-radius:14px;font-size:.72rem}
+#progress-panel{position:absolute;top:48px;right:12px;background:rgba(0,0,0,.8);color:#fff;padding:9px 12px;border-radius:11px;font-size:.74rem;min-width:160px}
+#progress-panel h4{color:#e94560;margin-bottom:4px;font-size:.76rem}
+.task{margin-bottom:3px}.task.done{color:#4caf50;text-decoration:line-through}
+#hearing-status{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.75);color:#fff;padding:5px 12px;border-radius:12px;font-size:.72rem}
+#interact-prompt{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.93);color:#111;padding:7px 18px;border-radius:18px;font-size:.8rem;font-weight:bold;display:none;box-shadow:0 4px 15px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none}
+#controls-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#ccc;padding:5px 13px;border-radius:13px;font-size:.66rem;text-align:center;white-space:nowrap;pointer-events:none}
+
+#visual-border{position:absolute;inset:0;border:8px solid transparent;pointer-events:none;transition:border-color .2s}
+#visual-border.danger{animation:dangerpulse .45s ease-in-out infinite alternate}
+@keyframes dangerpulse{from{border-color:rgba(255,30,30,.2)}to{border-color:rgba(255,0,0,.75)}}
+#lives-display{position:absolute;bottom:55px;right:12px;background:rgba(0,0,0,.78);color:#fff;padding:5px 11px;border-radius:10px;font-size:.82rem;letter-spacing:1px;pointer-events:none;display:none}
+#damage-flash{position:absolute;inset:0;background:rgba(255,0,0,0);pointer-events:none;transition:background .15s;z-index:15}
+
+/* ── MINIMAP ── */
+#minimap-wrap{position:absolute;bottom:14px;left:14px;pointer-events:none}
+#minimap{border-radius:50%;border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 12px rgba(0,0,0,.5);display:block}
+#compass{text-align:center;color:rgba(255,255,255,.7);font-size:.62rem;margin-top:3px;letter-spacing:2px}
+
+/* ── NPC LABELS ── */
+.npc-label{position:absolute;pointer-events:none;transform:translate(-50%,-100%);text-align:center;z-index:12}
+.npc-label .nl-name{background:rgba(0,0,0,.72);color:#fff;padding:2px 7px;border-radius:8px;font-size:.65rem;white-space:nowrap}
+.npc-label .nl-icon{font-size:.9rem;display:block;text-align:center}
+
+/* ── SOUND METER (hearing players only) ── */
+#sound-meter{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);border-radius:20px;padding:4px 12px;display:none;pointer-events:none;align-items:center;gap:6px}
+#sound-meter span{font-size:.68rem;color:#4caf50}
+.bar{width:4px;border-radius:2px;background:#4caf50;transition:height .1s}
+#sound-bars{display:flex;align-items:flex-end;gap:2px;height:16px}
+
+/* ── DIALOG ── */
+#dialog{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(8,8,28,.95);color:#fff;padding:16px 20px;border-radius:13px;max-width:min(500px,94vw);width:100%;display:none;z-index:60;pointer-events:all;border:2px solid rgba(255,255,255,.15);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#dialog .spk{font-size:.7rem;color:#e94560;margin-bottom:4px;font-weight:bold}
+#dialog .msg{font-size:.86rem;line-height:1.6;white-space:pre-wrap;margin-bottom:8px}
+#dialog .sg{font-size:1.5rem;letter-spacing:5px;margin:3px 0 8px}
+#dialog button{background:#e94560;color:#fff;border:none;padding:6px 17px;border-radius:10px;cursor:pointer;font-size:.8rem}
+
+/* ── PANELS ── */
+.panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:15px;padding:18px;width:min(520px,95vw);display:none;z-index:60;color:#111;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.panel h3{margin-bottom:6px;color:#e94560;font-size:1rem}
+.panel .desc{font-size:.74rem;color:#555;margin-bottom:8px}
+.panel button.ok{margin-top:10px;background:#e94560;color:#fff;border:none;padding:8px 22px;border-radius:16px;cursor:pointer;font-size:.86rem}
+#audiogram-canvas{border:1px solid #ccc;border-radius:5px;width:100%;cursor:crosshair}
+#audiogram-status{font-size:.76rem;color:#333;margin-top:6px}
+#transport-panel .dest-grid{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem}
+.dest-btn{border:2px solid #ddd;border-radius:10px;padding:.6rem 1rem;cursor:pointer;font-size:.85rem;background:#f5f5f5;transition:all .2s;text-align:center}
+.dest-btn:hover,.dest-btn:active{border-color:#e94560;background:rgba(233,69,96,.1)}
+.dest-btn .dflag{font-size:1.3rem;display:block;margin-bottom:3px}
+
+/* ── MOBILE CONTROLS ── */
+#mobile-controls{position:absolute;inset:0;pointer-events:none;display:none;z-index:15}
+/* Left = move joystick */
+#move-zone{position:absolute;bottom:30px;left:25px;width:110px;height:110px;pointer-events:all}
+.joy-base{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.3);position:absolute}
+.joy-handle{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(255,255,255,.9);position:absolute;top:33px;left:33px}
+/* Action buttons — right column: interact (top/above), jump (bottom) */
+#mobile-btns{position:absolute;bottom:30px;right:16px;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:all}
+.m-btn{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;transition:opacity .25s,transform .1s}
+.m-btn:active{transform:scale(.88)}
+#btn-act{background:rgba(46,204,113,.7);width:68px;height:68px;font-size:1.5rem}
+#btn-act.out-of-range{opacity:.3;background:rgba(46,204,113,.35)}
+/* Sign row — horizontal strip, bottom centre */
+#sign-row{position:absolute;bottom:155px;left:50%;transform:translateX(-50%);display:flex;flex-direction:row;gap:8px;pointer-events:all}
+.sign-btn{width:44px;height:44px;border-radius:10px;background:rgba(155,89,182,.65);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;user-select:none;-webkit-user-select:none;flex-direction:column}
+.sign-btn span{font-size:.42rem;color:rgba(255,255,255,.7);margin-top:1px}
+.sign-btn:active{transform:scale(.88)}
+
+/* ── CALL POLICE ── */
+#call-police-btn{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(26,58,138,.9);color:#fff;border:2px solid rgba(100,150,255,.6);border-radius:22px;padding:8px 20px;font-size:.8rem;font-weight:bold;cursor:pointer;pointer-events:all;letter-spacing:.5px;box-shadow:0 3px 14px rgba(0,0,100,.4);transition:background .15s,transform .1s;white-space:nowrap}
+#call-police-btn:hover{background:rgba(40,80,180,.95)}
+#call-police-btn:active{transform:translateX(-50%) scale(.92)}
+#call-police-btn.on-cooldown{opacity:.45;cursor:default}
+#police-toast{position:absolute;top:80px;left:50%;transform:translateX(-50%);background:rgba(26,58,138,.93);color:#fff;padding:8px 22px;border-radius:14px;font-size:.82rem;font-weight:bold;pointer-events:none;z-index:30;white-space:nowrap;display:none;box-shadow:0 4px 18px rgba(0,0,100,.5)}
+/* ── FIRE EMOJIS ── */
+.fire-label{position:absolute;pointer-events:none;z-index:11;transform:translate(-50%,-100%);display:flex;flex-wrap:wrap;justify-content:center;gap:1px;width:90px}
+.fire-e{font-size:1.9rem;animation:fireBob .35s ease-in-out infinite alternate;display:block}
+@keyframes fireBob{from{transform:scaleY(1) translateY(0)}to{transform:scaleY(1.25) translateY(-5px)}}
+/* ── FX ── */
+@keyframes floatUp{0%{transform:translateY(0) scale(.8);opacity:1}100%{transform:translateY(-65px) scale(1.5);opacity:0}}
+.float-icon{position:absolute;pointer-events:none;z-index:12;font-size:1.6rem;animation:floatUp .75s ease-out forwards}
+@keyframes vFlash{0%{opacity:.4}100%{opacity:0}}
+.flash-overlay{position:absolute;inset:0;pointer-events:none;z-index:8;animation:vFlash .45s ease-out forwards}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <!-- GAME OVER OVERLAY -->
+  <div id="gameover-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:90;flex-direction:column;gap:1rem">
+    <div style="background:rgba(20,0,0,.95);color:#fff;padding:2.2rem 3rem;border-radius:20px;text-align:center;border:2px solid #cc0000;max-width:400px">
+      <div style="font-size:2.5rem;margin-bottom:.4rem">💀</div>
+      <div style="font-size:1.5rem;color:#ff4444;font-weight:bold;margin-bottom:.5rem">Game Over!</div>
+      <div id="gameover-msg" style="font-size:.88rem;color:#ccc;margin-bottom:1.4rem;line-height:1.5"></div>
+      <button onclick="location.reload()" style="padding:.7rem 2.2rem;font-size:1rem;border-radius:12px;border:none;background:#cc3333;color:#fff;cursor:pointer;font-weight:bold;margin-right:.5rem">🔄 Try Again</button>
+    </div>
+  </div>
+
+  <!-- POINTER LOCK OVERLAY -->
+  <div id="lock-overlay" onclick="requestLock()">
+    <div class="lock-box">🖱️ Click to look around<br><small>WASD to move • E to interact • ESC to pause</small></div>
+  </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pause-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:60;flex-direction:column;gap:1.2rem">
+    <div style="background:rgba(0,0,0,.9);color:#fff;padding:2rem 3rem;border-radius:18px;text-align:center;border:2px solid rgba(255,255,255,.2)">
+      <div style="font-size:1.6rem;margin-bottom:.5rem">⏸ Paused</div>
+      <div style="font-size:.85rem;color:#aaa;margin-bottom:1.4rem">Your mouse is free — click Resume or press ESC to continue</div>
+      <button onclick="resumeGame()" style="padding:.6rem 2rem;font-size:1rem;border-radius:10px;border:none;background:#2ecc71;color:#fff;cursor:pointer;font-weight:bold">▶ Resume</button>
+    </div>
+  </div>
+
+  <!-- CROSSHAIR -->
+  <div id="crosshair"></div>
+
+  <!-- DEVICE SELECT -->
+  <div id="device-screen" class="screen">
+    <h1 class="title">🦻 Deaf Awareness World</h1>
+    <p class="sub">Experience deafness from three perspectives • Travel 5 countries</p>
+    <div class="cards">
+      <div class="card" onclick="selectDevice('desktop')">
+        <div class="ico">💻</div><h3>Computer</h3><p>Mouse to look • WASD to move</p>
+      </div>
+      <div class="card" onclick="selectDevice('mobile')">
+        <div class="ico">📱</div><h3>Mobile / Tablet</h3><p>Left stick move • Drag screen to look</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <div id="menu-screen" class="screen hidden">
+    <h1 class="title">🦻 Deaf Awareness World</h1>
+    <p class="sub">First-person simulation • 6 countries • Plane, Train &amp; Taxi</p>
+    <span class="sec">🎮 Choose a Role</span>
+    <div class="cards">
+      <div class="card" onclick="startGame('citizen',false)">
+        <div class="ico">🧑</div><h3>Deaf Citizen</h3><p>Visual-only world. Get treated at the clinic to hear again.</p>
+      </div>
+      <div class="card" onclick="startGame('police',false)">
+        <div class="ico">👮</div><h3>Deaf Police</h3><p>Serve with visual communication. Get treated.</p>
+      </div>
+      <div class="card" onclick="startGame('doctor',false)">
+        <div class="ico">🩺</div><h3>Audiologist</h3><p>Diagnose patients. Only you can hear from the start.</p>
+      </div>
+      <div class="card" onclick="startGame('firefighter',false)">
+        <div class="ico">🚒</div><h3>Deaf Firefighter</h3><p>Fight fires with visual alarms. Press E near a fire to extinguish it.</p>
+      </div>
+    </div>
+    <div style="height:1.5rem"></div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="role-badge">—</div>
+    <div id="country-badge">🇺🇸 USA · New York</div>
+    <div id="hearing-status">🔇 Cannot Hear</div>
+    <div id="progress-panel"><h4>📋 Tasks <span id="score-display" style="color:#FFD700;float:right;font-size:.68rem">0 pts</span></h4><div id="task-list"></div></div>
+
+    <div id="lives-display">❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️</div>
+    <div id="damage-flash"></div>
+    <div id="interact-prompt"></div>
+    <div id="controls-hint"></div>
+    <!-- Desktop sign panel (toggle with Z) -->
+    <div id="desktop-signs" style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.88);border-radius:14px;padding:10px 14px;display:none;z-index:25;pointer-events:all;flex-direction:column;align-items:center;gap:6px">
+      <div style="color:#aaa;font-size:.65rem">🤟 Sign Language &nbsp;<span style="opacity:.5">[Q to close]</span></div>
+      <div style="display:flex;gap:8px">
+        <div class="sign-btn" onclick="sendSign('🤟','I Love You');document.getElementById('desktop-signs').style.display='none'">🤟<span>ILY</span></div>
+        <div class="sign-btn" onclick="sendSign('👋','Hello');document.getElementById('desktop-signs').style.display='none'">👋<span>Hi</span></div>
+        <div class="sign-btn" onclick="sendSign('✋','Stop');document.getElementById('desktop-signs').style.display='none'">✋<span>Stop</span></div>
+        <div class="sign-btn" onclick="sendSign('🤙','Call me');document.getElementById('desktop-signs').style.display='none'">🤙<span>Call</span></div>
+        <div class="sign-btn" onclick="sendSign('👍','Yes/OK');document.getElementById('desktop-signs').style.display='none'">👍<span>Yes</span></div>
+        <div class="sign-btn" onclick="sendSign('🙏','Thank you');document.getElementById('desktop-signs').style.display='none'">🙏<span>Thanks</span></div>
+        <div class="sign-btn" onclick="sendSign('❓','What?');document.getElementById('desktop-signs').style.display='none'">❓<span>What?</span></div>
+      </div>
+    </div>
+    <button id="call-police-btn" onclick="callPolice()" style="display:none">🚔 Call Police <span style="opacity:.6;font-size:.7rem">[F]</span></button>
+    <div id="police-toast"></div>
+    <div id="visual-border"></div>
+    <!-- Minimap -->
+    <div id="minimap-wrap">
+      <canvas id="minimap" width="150" height="150"></canvas>
+      <div id="compass">N</div>
+    </div>
+    <!-- Sound meter (visible only when player can hear) -->
+    <div id="sound-meter">
+      <span>🔊</span>
+      <div id="sound-bars"></div>
+      <span id="sound-label">Ambient</span>
+    </div>
+  </div>
+
+  <!-- DIALOG -->
+  <div id="dialog">
+    <div class="spk" id="dlg-spk"></div>
+    <div class="msg" id="dlg-msg"></div>
+    <div class="sg"  id="dlg-sg"></div>
+    <button onclick="closeDialog()">Continue ▶</button>
+  </div>
+
+  <!-- AUDIOGRAM -->
+  <div id="audiogram-panel" class="panel">
+    <h3>🔬 Audiogram — Hearing Test</h3>
+    <p class="desc">Click the chart to mark the hearing threshold at each frequency. Normal hearing is below 25 dB HL.</p>
+    <canvas id="audiogram-canvas" height="250"></canvas>
+    <p id="audiogram-status">Click to mark thresholds (0/6 done).</p>
+    <button class="ok" onclick="submitAudiogram()">Submit Results ✅</button>
+  </div>
+
+  <!-- TRANSPORT -->
+  <div id="transport-panel" class="panel">
+    <h3 id="transport-title">✈️ Airport — Choose Destination</h3>
+    <p class="desc" id="transport-desc"></p>
+    <div class="dest-grid" id="dest-grid"></div>
+    <button class="ok" onclick="closeTransport()">Cancel</button>
+  </div>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="mobile-controls">
+    <!-- Move joystick (left) -->
+    <div id="move-zone">
+      <div class="joy-base" id="mj-base"></div>
+      <div class="joy-handle" id="mj-handle"></div>
+    </div>
+    <!-- Sign buttons -->
+    <div id="sign-row">
+      <div class="sign-btn" onclick="sendSign('🤟','I Love You')">🤟<span>ILY</span></div>
+      <div class="sign-btn" onclick="sendSign('👋','Hello')">👋<span>Hi</span></div>
+      <div class="sign-btn" onclick="sendSign('✋','Stop')">✋<span>Stop</span></div>
+      <div class="sign-btn" onclick="sendSign('🤙','Call me')">🤙<span>Call</span></div>
+      <div class="sign-btn" onclick="sendSign('👍','Yes / OK')">👍<span>Yes</span></div>
+    </div>
+    <!-- Action buttons: column-reverse so interact renders above jump -->
+    <div id="mobile-btns">
+      <div class="m-btn" style="background:rgba(52,152,219,.7)" ontouchstart="mobileJump(event)">⬆</div>
+      <div id="btn-act" class="m-btn out-of-range" ontouchstart="mobileInteract(event)">💬</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+//  COUNTRIES
+// ═══════════════════════════════════════════════
+const COUNTRIES = {
+  usa:       { flag:'🇺🇸', name:'USA',       city:'New York',       sky:0x7ec8e3, ground:0x4a7c4e, bc:{clinic:0x2255BB,police:0x445566,homes:0x8B4513,community:0x336633}, welcome:'Welcome to New York! The city that never sleeps.' },
+  japan:     { flag:'🇯🇵', name:'Japan',     city:'Tokyo',          sky:0xFFDEDC, ground:0x5a7a5a, bc:{clinic:0xCC3333,police:0x2a2a5a,homes:0x884422,community:0x556B2F}, welcome:'Yokoso Tokyo! Welcome to the heart of Japan.' },
+  uk:        { flag:'🇬🇧', name:'UK',        city:'London',         sky:0xb0c4de, ground:0x3d6b3d, bc:{clinic:0x8B0000,police:0x191970,homes:0x6b4e2a,community:0x556B2F}, welcome:"Welcome to London! Mind the gap." },
+  australia: { flag:'🇦🇺', name:'Australia', city:'Sydney',         sky:0x87CEEB, ground:0x6B8E4E, bc:{clinic:0xFF6347,police:0x2F4F4F,homes:0xA0522D,community:0x228B22}, welcome:"G'day! Welcome to Sydney." },
+  brazil:    { flag:'🇧🇷', name:'Brazil',    city:'Rio de Janeiro', sky:0x40E0D0, ground:0x32a032, bc:{clinic:0xFF4500,police:0x006400,homes:0xDEB887,community:0xFFD700}, welcome:'Bem-vindo ao Rio! Welcome to Brazil.' },
+  canada:    { flag:'🇨🇦', name:'Canada',   city:'Toronto',        sky:0xb0d4e8, ground:0x4a6741, bc:{clinic:0xCC0000,police:0x1a3a8a,homes:0x8B4513,community:0x2F6030}, welcome:"Welcome to Toronto! Canada's most multicultural city. Home to a vibrant deaf community, deaf schools, and a proud ASL culture." },
+};
+let currentCountry = 'usa';
+
+// ═══════════════════════════════════════════════
+//  THREE.JS
+// ═══════════════════════════════════════════════
+const gameCanvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x7ec8e3);
+scene.fog = new THREE.Fog(0x7ec8e3, 30, 75);
+
+// First-person camera
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 150);
+camera.rotation.order = 'YXZ';
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const sun = new THREE.DirectionalLight(0xffd27f, 1.1);
+sun.position.set(25, 35, 20); sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left=sun.shadow.camera.bottom=-50;
+sun.shadow.camera.right=sun.shadow.camera.top=50;
+sun.shadow.camera.far=120;
+scene.add(sun);
+
+window.addEventListener('resize',()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ═══════════════════════════════════════════════
+//  FIRST-PERSON STATE
+// ═══════════════════════════════════════════════
+let yaw = 0, pitch = 0;
+const SENSE   = 0.0022;
+const MSENSE  = 0.008; // mobile look sensitivity
+const EYE_H   = 1.65;
+let pointerLocked = false;
+
+// Pointer lock
+function requestLock(){
+  if(!G.started||G.inDialog||G.inMinigame||G.inTransport||G.paused) return;
+  if(deviceMode!=='desktop') return;
+  gameCanvas.requestPointerLock();
+}
+function pauseGame(){
+  if(!G.started||deviceMode!=='desktop') return;
+  G.paused=true;
+  if(pointerLocked) document.exitPointerLock();
+  document.getElementById('lock-overlay').classList.remove('show');
+  document.getElementById('pause-overlay').style.display='flex';
+}
+function resumeGame(){
+  G.paused=false;
+  document.getElementById('pause-overlay').style.display='none';
+  document.getElementById('lock-overlay').classList.add('show');
+}
+gameCanvas.addEventListener('click', requestLock);
+document.addEventListener('pointerlockchange', () => {
+  pointerLocked = document.pointerLockElement === gameCanvas;
+  const overlay = document.getElementById('lock-overlay');
+  const cross   = document.getElementById('crosshair');
+  if (pointerLocked) { overlay.classList.remove('show'); cross.style.display='block'; }
+  else { cross.style.display='none'; const signsOpen=document.getElementById('desktop-signs')?.style.display==='flex'; if (G.started && !G.inDialog && !G.inMinigame && !G.inTransport && !G.paused && !signsOpen) overlay.classList.add('show'); }
+});
+document.addEventListener('mousemove', e => {
+  if (!pointerLocked) return;
+  yaw   -= e.movementX * SENSE;
+  pitch -= e.movementY * SENSE;
+  pitch  = Math.max(-1.1, Math.min(1.1, pitch));
+});
+
+// ═══════════════════════════════════════════════
+//  AUDIO
+// ═══════════════════════════════════════════════
+let audioCtx = null;
+function ensureAudio(){ if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); }
+function playTone(freq,dur,type='sine',vol=0.08){
+  if(!audioCtx) return;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.setValueAtTime(vol,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+  o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function playNotify()  { if(canHear()){ensureAudio();playTone(880,.18);setTimeout(()=>playTone(1100,.12),180);} }
+function playSuccess() { if(canHear()){ensureAudio();[523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,.2,'triangle',.1),i*110));} }
+function playStep()    { if(canHear()){ensureAudio();playTone(80+Math.random()*20,.06,'square',.035);} }
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const G={started:false,inDialog:false,inMinigame:false,inTransport:false,paused:false,gameOver:false,nearTarget:null,players:[],npcs:[],buildings:[],zones:[],cars:[],fires:[],signsUsed:0,lastPoliceCall:0};
+let deviceMode='desktop';
+const keys={};
+const moveJoy={dx:0,dz:0};
+
+function canHear(){ return G.players.length && (G.players[0].role==='doctor'||G.players[0].treated); }
+
+// ═══════════════════════════════════════════════
+//  DEVICE SELECT
+// ═══════════════════════════════════════════════
+function selectDevice(mode){
+  deviceMode=mode;
+  document.getElementById('device-screen').classList.add('hidden');
+  document.getElementById('menu-screen').classList.remove('hidden');
+
+}
+
+// ═══════════════════════════════════════════════
+//  WORLD
+// ═══════════════════════════════════════════════
+const WORLD_OBJS=[];
+function clearWorld(){
+  WORLD_OBJS.forEach(o=>{if(o.parent)o.parent.remove(o);}); WORLD_OBJS.length=0;
+  G.buildings.length=0; G.zones.length=0; G.cars.length=0;
+  G.fires.forEach(f=>{if(f.mesh.parent)f.mesh.parent.remove(f.mesh);if(f.el&&f.el.parentNode)f.el.parentNode.removeChild(f.el);}); G.fires.length=0;
+}
+function ao(o){ WORLD_OBJS.push(o); scene.add(o); return o; }
+
+function buildWorld(cid){
+  clearWorld();
+  const C=COUNTRIES[cid];
+  scene.background=new THREE.Color(C.sky);
+  scene.fog=new THREE.Fog(C.sky,30,75);
+
+  // Ground
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshLambertMaterial({color:C.ground}));
+  gnd.rotation.x=-Math.PI/2; gnd.receiveShadow=true; ao(gnd);
+
+  // Main cross-roads
+  addRoad(0,0,80,7,false); addRoad(0,0,7,80,true);
+  // Side grid roads
+  addRoad(0,-9,56,5,false); addRoad(0,9,56,5,false);
+  addRoad(-9,0,5,56,true);  addRoad(9,0,5,56,true);
+
+  addBuilding(-18,-18,9,8,7,  C.bc.homes,    '🏠 Homes',           true,'homes');
+  addBuilding( 18,-18,10,9,8, C.bc.clinic,   '🏥 Deaf Clinic',     true,'clinic');
+  addBuilding(-18, 18,9,8,7,  C.bc.community,'🏛 Community Center',true,'community');
+  addBuilding( 18, 18,10,9,8, C.bc.police,   '🚔 Police Station',  true,'police');
+  addBuilding(0,-28,14,7,10,  0x888888,      '✈️ Airport',         true,'airport');
+  addBuilding(-28,0,8,6,8,    0x774411,      '🚂 Train Station',   true,'train');
+  addBuilding(28,0,6,5,6,     0xFFAA00,      '🚕 Taxi Stand',      true,'taxi');
+  // Extra city buildings (visual only)
+  addBuilding(5,22,6,4,5,     0x8B6914,      '📚 Library',         true,'library');
+  addBuilding(-5,22,6,4,5,    0xDD4466,      '💊 Pharmacy',        true,'pharmacy');
+  addBuilding(-22,-22,7,5,6,  C.bc.homes,    '🏠 Housing',         false,null);
+  addBuilding(22,-22,7,5,6,   C.bc.homes,    '🏠 Housing',         false,null);
+  addBuilding(-22,22,6,4,6,   0xDD4422,      '🚒 Fire Station',    true,'firestation');
+  addBuilding(22,22,6,4,6,    C.bc.police,   '🏦 Bank',            false,null);
+
+  [[-8,12],[8,12],[12,-8],[-12,-8],[-26,-8],[26,-8],[-8,-22],[8,-22],
+   [26,8],[-26,8],[-26,26],[26,26],[-26,-26],[26,-26],[0,24],[0,-24],
+   [-14,-12],[14,-12],[-14,12],[14,12],[-12,-14],[12,-14],[-12,14],[12,14],
+   [-16,0],[16,0],[0,-16],[0,16]].forEach(([x,z])=>addTree(x,z));
+  [[-5,3],[5,3],[-5,-3],[5,-3],[3,12],[-3,12],[3,-12],[-3,-12],
+   [-9,-12],[9,-12],[-12,-9],[12,-9],[-9,12],[9,12],[-12,9],[12,9]].forEach(([x,z])=>addSL(x,z));
+
+  spawnTraffic();
+  document.getElementById('country-badge').textContent=C.flag+' '+C.name+' · '+C.city;
+}
+
+function addRoad(cx,cz,w,d,vert){
+  const r=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshLambertMaterial({color:0x555555}));
+  r.rotation.x=-Math.PI/2; r.position.set(cx,.01,cz); ao(r);
+  const l=new THREE.Mesh(new THREE.PlaneGeometry(vert?.25:w*.82,vert?d*.82:.25),new THREE.MeshLambertMaterial({color:0xffff00}));
+  l.rotation.x=-Math.PI/2; l.position.set(cx,.02,cz); ao(l);
+}
+
+function addBuilding(x,z,w,h,d,color,label,hasZone,id){
+  const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));
+  b.position.y=h/2; b.castShadow=true; b.receiveShadow=true; g.add(b);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.75,2.5,4),new THREE.MeshLambertMaterial({color:0x7a0000}));
+  roof.position.y=h+1.25; roof.rotation.y=Math.PI/4; g.add(roof);
+  const doorMat=new THREE.MeshLambertMaterial({color:0x3a1a00});
+  const doorHighMat=new THREE.MeshLambertMaterial({color:0x8B4513,emissive:0xffaa00,emissiveIntensity:0});
+  const door=new THREE.Mesh(new THREE.BoxGeometry(1.4,2.4,.1),doorMat);
+  door.position.set(0,1.2,d/2+.06); g.add(door);
+  // door frame
+  const frameMat=new THREE.MeshLambertMaterial({color:0xffffff});
+  const fTop=new THREE.Mesh(new THREE.BoxGeometry(1.8,.12,.12),frameMat); fTop.position.set(0,2.46,d/2+.1); g.add(fTop);
+  const fL=new THREE.Mesh(new THREE.BoxGeometry(.12,2.6,.12),frameMat); fL.position.set(-.9,1.2,d/2+.1); g.add(fL);
+  const fR=new THREE.Mesh(new THREE.BoxGeometry(.12,2.6,.12),frameMat); fR.position.set(.9,1.2,d/2+.1); g.add(fR);
+  // knob
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),new THREE.MeshLambertMaterial({color:0xFFD700}));
+  knob.position.set(.55,1.2,d/2+.2); g.add(knob);
+  const wMat=new THREE.MeshLambertMaterial({color:0xb0e0ff,emissive:0xfffaaa,emissiveIntensity:.2});
+  [[-1.8,h*.4],[1.8,h*.4],[-1.8,h*.72],[1.8,h*.72]].forEach(([wx,wy])=>{
+    if(wy<h-.5){const win=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.1,.1),wMat);win.position.set(wx,wy,d/2+.06);g.add(win);}
+  });
+  g.position.set(x,0,z); ao(g);
+  const canFire=!['clinic','police','airport','train','taxi','firestation'].includes(id);
+  G.buildings.push({x,z,w,h,d,hw:w/2+.8,hd:d/2+.8,id,canFire});
+  // Grass patch in front of door (safe zone)
+  if(hasZone){
+    const gp=new THREE.Mesh(new THREE.BoxGeometry(4.5,.06,3.5),new THREE.MeshLambertMaterial({color:0x3aaa3a}));
+    gp.position.set(x,.02,z+d/2+1.6); ao(gp);
+  }
+  // door zone: small area directly in front of the door
+  if(hasZone) G.zones.push({x, z:z+d/2+1.5, hw:2.25, hd:1.75, id, label, isDoor:true, isSafe:true, doorMesh:door, doorMat, doorHighMat});
+}
+
+function addTree(x,z){
+  const g=new THREE.Group();
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(.28,.35,2,7),new THREE.MeshLambertMaterial({color:0x6B3A1F}));
+  t.position.y=1; g.add(t);
+  const l=new THREE.Mesh(new THREE.SphereGeometry(1.6,7,7),new THREE.MeshLambertMaterial({color:0x2d7d2d}));
+  l.position.y=3.4; g.add(l);
+  g.position.set(x,0,z); ao(g);
+}
+
+function addSL(x,z){
+  const g=new THREE.Group();
+  const p=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,4.2,6),new THREE.MeshLambertMaterial({color:0x888}));
+  p.position.y=2.1; g.add(p);
+  const h=new THREE.Mesh(new THREE.BoxGeometry(.5,.22,.5),new THREE.MeshLambertMaterial({color:0xffffcc,emissive:0xffffcc,emissiveIntensity:.9}));
+  h.position.y=4.3; g.add(h);
+  const pl=new THREE.PointLight(0xffffaa,.5,8); pl.position.y=4.4; g.add(pl);
+  g.position.set(x,0,z); ao(g);
+}
+
+// ═══════════════════════════════════════════════
+//  TRAFFIC
+// ═══════════════════════════════════════════════
+function makeCar(color){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.4,.65,2.6),new THREE.MeshLambertMaterial({color}));
+  body.position.y=.6; body.castShadow=true; g.add(body);
+  const top=new THREE.Mesh(new THREE.BoxGeometry(1.0,.5,1.5),new THREE.MeshLambertMaterial({color}));
+  top.position.y=1.15; g.add(top);
+  const wsMat=new THREE.MeshLambertMaterial({color:0x88aadd,transparent:true,opacity:.65});
+  const ws=new THREE.Mesh(new THREE.BoxGeometry(.95,.34,.05),wsMat); ws.position.set(0,1.1,.77); g.add(ws);
+  const wMat=new THREE.MeshLambertMaterial({color:0x222222});
+  [[-0.72,.28,-.85],[0.72,.28,-.85],[-0.72,.28,.85],[0.72,.28,.85]].forEach(([wx,wy,wz])=>{
+    const w=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.18,8),wMat);
+    w.rotation.z=Math.PI/2; w.position.set(wx,wy,wz); g.add(w);
+  });
+  const hlMat=new THREE.MeshLambertMaterial({color:0xffffcc,emissive:0xffffcc,emissiveIntensity:.8});
+  [[-0.4,.62],[.4,.62]].forEach(([hx,hy])=>{
+    const hl=new THREE.Mesh(new THREE.BoxGeometry(.18,.12,.05),hlMat); hl.position.set(hx,hy,-1.34); g.add(hl);
+  });
+  return g;
+}
+
+function spawnCar(path,color,isTaxi){
+  const mesh=makeCar(color); ao(mesh);
+  const totalLen=path.reduce((s,_,i)=>i<path.length-1?s+Math.hypot(path[i+1][0]-path[i][0],path[i+1][1]-path[i][1]):s,0);
+  let rem=Math.random()*totalLen, si=0, sp=0;
+  for(let i=0;i<path.length-1;i++){
+    const sl=Math.hypot(path[i+1][0]-path[i][0],path[i+1][1]-path[i][1]);
+    if(rem<=sl){si=i;sp=rem;break;} rem-=sl;
+  }
+  const car={mesh,path,pathIdx:si,progress:sp,speed:.055+Math.random()*.04,isTaxi,stopped:false};
+  const f=path[si],t=path[si+1]||path[0];
+  const sl=Math.hypot(t[0]-f[0],t[1]-f[1]),r=sl>0?sp/sl:0;
+  car.mesh.position.set(f[0]+(t[0]-f[0])*r,0,f[1]+(t[1]-f[1])*r);
+  car.mesh.rotation.y=Math.atan2(-(t[0]-f[0]),-(t[1]-f[1]));
+  G.cars.push(car); return car;
+}
+
+function moveCars(){
+  G.cars.forEach(car=>{
+    if(car.stopped) return;
+    car.progress+=car.speed;
+    while(true){
+      if(car.pathIdx+1>=car.path.length){
+        car.pathIdx=0; car.progress=0;
+        car.mesh.position.set(car.path[0][0],0,car.path[0][1]); return;
+      }
+      const f=car.path[car.pathIdx],t=car.path[car.pathIdx+1];
+      const sl=Math.hypot(t[0]-f[0],t[1]-f[1]);
+      if(car.progress<sl) break;
+      car.progress-=sl; car.pathIdx++;
+    }
+    const f=car.path[car.pathIdx],t=car.path[car.pathIdx+1];
+    const dx=t[0]-f[0],dz=t[1]-f[1],sl=Math.hypot(dx,dz);
+    const r=sl>0?car.progress/sl:0;
+    car.mesh.position.set(f[0]+dx*r,0,f[1]+dz*r);
+    car.mesh.rotation.y=Math.atan2(-dx,-dz);
+  });
+}
+
+function spawnTraffic(){
+  const TAXI=0xF0C000;
+  const CLRS=[0xCC3333,0x4466BB,0x55AA55,0x888888,0x883399,0xCC7722,0x2299AA,0x994422];
+  const lanes=[
+    [[-22,-2],[22,-2]],  // main E-W eastbound
+    [[22,2],[-22,2]],    // main E-W westbound
+    [[2,-22],[2,22]],    // main N-S southbound
+    [[-2,22],[-2,-22]], // main N-S northbound
+    [[-18,-9],[18,-9]], // side z=-9 eastbound
+    [[18,9],[-18,9]],   // side z=9 westbound
+    [[-9,-18],[-9,18]], // side x=-9 southbound
+    [[9,18],[9,-18]],   // side x=9 northbound
+  ];
+  lanes.forEach((path,i)=>spawnCar(path,CLRS[i%CLRS.length],false));
+  spawnCar([[-22,-3.5],[22,-3.5]],TAXI,true);  // taxi on main E-W outer lane
+  spawnCar([[3,-22],[3,22]],TAXI,true);          // taxi on main N-S outer lane
+}
+
+// ═══════════════════════════════════════════════
+//  CHARACTERS
+// ═══════════════════════════════════════════════
+const RCOL={citizen:0xCC7733,police:0x1a3a8a,doctor:0xeeeeff,robber:0x2a2a2a,firefighter:0xDD5500};
+const SKIN={citizen:0xFFCC99,police:0xFFCC99,doctor:0xFFBBAA,robber:0xBB9977,firefighter:0xFFCC99};
+
+function makeChar(bc,sc,role){
+  const g=new THREE.Group();
+  const tor=new THREE.Mesh(new THREE.BoxGeometry(.75,1.1,.38),new THREE.MeshLambertMaterial({color:bc}));
+  tor.position.y=1.05; tor.castShadow=true; g.add(tor);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.33,10,10),new THREE.MeshLambertMaterial({color:sc}));
+  head.position.y=1.88; head.castShadow=true; g.add(head);
+  const am=new THREE.MeshLambertMaterial({color:bc});
+  [-1,1].forEach(s=>{
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.11,.1,.78,7),am);
+    arm.position.set(s*.49,1,0); arm.rotation.z=s*.25; arm.castShadow=true; g.add(arm);
+  });
+  const lm=new THREE.MeshLambertMaterial({color:0x1a2a6c});
+  [-1,1].forEach(s=>{
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.13,.11,.88,7),lm);
+    leg.position.set(s*.21,.22,0); leg.castShadow=true; g.add(leg);
+    const foot=new THREE.Mesh(new THREE.BoxGeometry(.19,.11,.33),new THREE.MeshLambertMaterial({color:0x111}));
+    foot.position.set(s*.21,-.25,.08); g.add(foot);
+  });
+  if(role==='police'){
+    const cap=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.19,10),new THREE.MeshLambertMaterial({color:0x00008B}));
+    cap.position.y=2.12; g.add(cap);
+    const badge=new THREE.Mesh(new THREE.BoxGeometry(.14,.14,.05),new THREE.MeshLambertMaterial({color:0xFFD700,emissive:0xFFD700,emissiveIntensity:.4}));
+    badge.position.set(-.24,1.15,.21); g.add(badge);
+  } else if(role==='doctor'){
+    const coat=new THREE.Mesh(new THREE.BoxGeometry(.8,1.15,.42),new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.6}));
+    coat.position.y=1.05; g.add(coat);
+    const s=new THREE.Mesh(new THREE.TorusGeometry(.09,.025,6,18),new THREE.MeshLambertMaterial({color:0x666}));
+    s.position.set(0,1.22,.22); s.rotation.x=Math.PI/2; g.add(s);
+  } else if(role==='robber'){
+    // Horizontal black-and-white stripes over the torso
+    const stripeColors=[0xffffff,0x111111,0xffffff,0x111111,0xffffff];
+    stripeColors.forEach((c,i)=>{
+      const s=new THREE.Mesh(new THREE.BoxGeometry(.77,.2,.4),new THREE.MeshLambertMaterial({color:c}));
+      s.position.set(0,.62+i*.18,0); g.add(s);
+    });
+    // Black ski mask
+    const mask=new THREE.Mesh(new THREE.SphereGeometry(.34,10,10),new THREE.MeshLambertMaterial({color:0x111111}));
+    mask.position.y=1.88; g.add(mask);
+    // Eye holes (white)
+    [-0.12,0.12].forEach(ex=>{
+      const eye=new THREE.Mesh(new THREE.SphereGeometry(.07,6,6),new THREE.MeshLambertMaterial({color:0xffffff}));
+      eye.position.set(ex,1.91,.3); g.add(eye);
+    });
+    // Swag bag
+    const bag=new THREE.Mesh(new THREE.BoxGeometry(.32,.32,.32),new THREE.MeshLambertMaterial({color:0x2a2a1a}));
+    bag.position.set(.52,.78,.16); g.add(bag);
+    const bagStrap=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.6,5),new THREE.MeshLambertMaterial({color:0x2a2a1a}));
+    bagStrap.position.set(.34,1.0,.1); bagStrap.rotation.z=.5; g.add(bagStrap);
+  } else if(role==='firefighter'){
+    // Yellow reflective stripe across torso
+    const stripe=new THREE.Mesh(new THREE.BoxGeometry(.8,.18,.42),new THREE.MeshLambertMaterial({color:0xFFDD00}));
+    stripe.position.set(0,1.0,0); g.add(stripe);
+    // Yellow helmet
+    const helm=new THREE.Mesh(new THREE.SphereGeometry(.4,8,8,0,Math.PI*2,0,Math.PI*.55),new THREE.MeshLambertMaterial({color:0xFFCC00}));
+    helm.position.y=2.06; g.add(helm);
+    const brim=new THREE.Mesh(new THREE.CylinderGeometry(.52,.52,.07,10),new THREE.MeshLambertMaterial({color:0xFFCC00}));
+    brim.position.y=1.96; g.add(brim);
+    // Oxygen tank on back
+    const tank=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.55,8),new THREE.MeshLambertMaterial({color:0xaaaaaa}));
+    tank.position.set(0,.95,-.26); g.add(tank);
+  } else {
+    const aid=new THREE.Mesh(new THREE.BoxGeometry(.07,.11,.04),new THREE.MeshLambertMaterial({color:0xFFAA88}));
+    aid.position.set(-.29,1.88,.12); g.add(aid);
+  }
+  return g;
+}
+
+// ═══════════════════════════════════════════════
+//  PLAYER
+// ═══════════════════════════════════════════════
+function spawnPlayer(role){
+  const mesh=makeChar(RCOL[role],SKIN[role],role);
+  mesh.position.set(0,0,0);
+  mesh.visible=false;
+  scene.add(mesh);
+  const p={mesh,role,speed:.095,bob:0,jumpY:0,jumpV:0,onGround:true,treated:false,stepTimer:0,score:0,citizensTalked:0,lives:10,lastRobberHit:0,lastCarHit:0,tasks:roleTasks(role)};
+  G.players.push(p); return p;
+}
+
+function roleTasks(role){
+  return({
+    citizen:[
+      {id:'visit_clinic',     text:'Visit the Deaf Clinic 🏥',        done:false},
+      {id:'talk_police',      text:'Talk to a Police Officer 👮',       done:false},
+      {id:'talk_doctor',      text:'Talk to an Audiologist 👨‍⚕️',         done:false},
+      {id:'audiogram',        text:'Complete Audiogram 📊',             done:false},
+      {id:'visit_community',  text:'Visit Community Center 🏛',         done:false},
+      {id:'visit_home',       text:'Visit your Home 🏠',               done:false},
+      {id:'use_signs',        text:'Use sign language 3× 🤟',          done:false},
+      {id:'ride_taxi',        text:'Ride a taxi 🚕',                   done:false},
+      {id:'visit_library',    text:'Visit the Library 📚',             done:false},
+      {id:'get_prescription', text:'Pick up a prescription 💊',         done:false},
+      {id:'travel',           text:'Travel to another country ✈️',      done:false},
+      {id:'treat_deafness',   text:'Get your hearing treated 👂',        done:false},
+    ],
+    police:[
+      {id:'patrol',           text:'Patrol the community 🚶',          done:false},
+      {id:'help_citizen',     text:'Help a deaf citizen 🤝',           done:false},
+      {id:'visit_station',    text:'Visit Police Station 🚔',          done:false},
+      {id:'arrest_robber',    text:'Arrest a robber 🦹',               done:false},
+      {id:'visit_community',  text:'Visit Community Center 🏛',         done:false},
+      {id:'respond_emergency',text:'Respond to an emergency 🆘',        done:false},
+      {id:'use_signs',        text:'Use sign language 3× 🤟',          done:false},
+      {id:'ride_taxi',        text:'Ride on patrol (taxi) 🚕',         done:false},
+      {id:'visit_library',    text:'Check the Library 📚',             done:false},
+      {id:'visit_home',       text:'Check on residents 🏠',            done:false},
+      {id:'travel',           text:'Travel to another country ✈️',      done:false},
+    ],
+    doctor:[
+      {id:'open_clinic',      text:'Open the Deaf Clinic 🏥',          done:false},
+      {id:'audiogram',        text:'Perform Audiogram Test 📊',         done:false},
+      {id:'prescribe',        text:'Prescribe Treatment 💊',           done:false},
+      {id:'talk_3_citizens',  text:'Consult 3 patients 👥',            done:false},
+      {id:'visit_community',  text:'Give a Community Talk 🏛',         done:false},
+      {id:'visit_pharmacy',   text:'Stock the Pharmacy 💊',            done:false},
+      {id:'use_signs',        text:'Use sign language 3× 🤟',          done:false},
+      {id:'visit_library',    text:'Research at Library 📚',           done:false},
+      {id:'ride_taxi',        text:'Ride a taxi 🚕',                   done:false},
+      {id:'visit_home',       text:'Check on patients at home 🏠',     done:false},
+      {id:'travel',           text:'Travel to another country ✈️',      done:false},
+    ],
+    firefighter:[
+      {id:'visit_firestation',text:'Visit the Fire Station 🚒',          done:false},
+      {id:'extinguish_fire',  text:'Extinguish a fire 🔥',               done:false},
+      {id:'visit_community',  text:'Visit Community Center 🏛',           done:false},
+      {id:'talk_police',      text:'Talk to a Police Officer 👮',         done:false},
+      {id:'talk_doctor',      text:'Talk to a Doctor 👨‍⚕️',               done:false},
+      {id:'use_signs',        text:'Use sign language 3× 🤟',            done:false},
+      {id:'ride_taxi',        text:'Ride a taxi 🚕',                     done:false},
+      {id:'visit_library',    text:'Visit the Library 📚',               done:false},
+      {id:'visit_home',       text:'Check on residents 🏠',              done:false},
+      {id:'travel',           text:'Travel to another country ✈️',        done:false},
+      {id:'treat_deafness',   text:'Get your hearing treated 👂',          done:false},
+    ],
+  })[role]||[];
+}
+
+// ═══════════════════════════════════════════════
+//  NPC
+// ═══════════════════════════════════════════════
+function spawnNPC(x,z,role,name){
+  const mesh=makeChar(RCOL[role]||0x555555,SKIN[role]||0xCCBBAA,role);
+  mesh.position.set(x,0,z); scene.add(mesh);
+  const isRobber=role==='robber';
+  const isFF=role==='firefighter';
+  const spd=isRobber?.0475+Math.random()*.003:isFF?.05+Math.random()*.01:.022+Math.random()*.01;
+  const range=isRobber?14:isFF?10:8;
+  const npc={mesh,role,name,ox:x,oz:z,target:{x:x+rnd(-range,range),z:z+rnd(-range,range)},speed:spd,bob:0,dialogs:npcDlg(role,name),dIdx:0};
+  G.npcs.push(npc);
+}
+
+function rnd(a,b){return a+Math.random()*(b-a);}
+
+function npcDlg(role,name){
+  return({
+    citizen:[
+      {spk:`${name} (Deaf Citizen)`,msg:"Hi! I'm deaf — I use sign language and written notes to communicate.\nVisual alert systems like flashing lights keep me safe at home and at work.",sg:"🤟 👋 ✋"},
+      {spk:`${name} (Deaf Citizen)`,msg:"Over 5% of the world has disabling hearing loss — that's 430 million people!\nAn audiogram at the clinic can measure exactly how much hearing loss I have.",sg:"💡 📳 🏥"},
+      {spk:`${name} (Deaf Citizen)`,msg:"Technology has improved so much for deaf people!\nVideo relay services, auto-captions, smart doorbells — but there's still\na long way to go for full accessibility everywhere.",sg:"📱 🏠 💡"},
+      {spk:`${name} (Deaf Citizen)`,msg:"The deaf community is incredibly strong and proud.\nWe have our own culture, art, humour, sports, and history.\nMany of us don't see deafness as a disability — it's an identity! 🌟",sg:"🤟 🎨 💪"},
+      {spk:`${name} (Deaf Citizen)`,msg:"Did you know? Sign languages are complete natural languages —\nnot just gestures. ASL, BSL, JSL and others each have their own\ngrammar, vocabulary, and poetry traditions.",sg:"📚 🌍 🤟"},
+    ],
+    police:[
+      {spk:`Officer ${name}`,msg:"I'm a deaf police officer. I carry visual communication cards\nand use a notepad for quick written exchanges.\nAccessibility in law enforcement matters for everyone.",sg:"🚔 📝 🤟"},
+      {spk:`Officer ${name}`,msg:"Our station uses flashing sirens and text-based dispatch systems.\nEvery citizen deserves equal protection — deaf or hearing.",sg:"🛡️ 👁️ ❤️"},
+      {spk:`Officer ${name}`,msg:"I learned basic ASL at the police academy. Being able to communicate\ndirectly in sign language builds real trust with the deaf community\nand makes policing much more effective.",sg:"🤟 👮 💙"},
+      {spk:`Officer ${name}`,msg:"Remember: in many areas you can TEXT 9-1-1!\nDeaf people have full access to emergency services via text,\nvideo relay, or TTY. Spread the word! 📱",sg:"📱 🚨 ✅"},
+    ],
+    doctor:[
+      {spk:`Dr. ${name}`,msg:"I'm an audiologist. I test hearing with an audiogram\nand can recommend hearing aids or cochlear implants.\nCome by the clinic any time for a check-up.",sg:"🩺 📊 👂"},
+      {spk:`Dr. ${name}`,msg:"Hearing loss can be caused by genetics, infections, noise exposure,\nor ageing. Modern treatment can restore a great deal of hearing!\nEarly intervention makes the biggest difference.",sg:"🧬 🔊 💊"},
+      {spk:`Dr. ${name}`,msg:"Did you know? 90% of deaf children are born to hearing parents.\nEarly sign language exposure is crucial for language development —\nregardless of whether they later get hearing aids or implants.",sg:"👶 🤟 📚"},
+      {spk:`Dr. ${name}`,msg:"There's no single 'right answer' in deaf healthcare.\nSome patients prefer hearing aids, some cochlear implants,\nsome prefer no intervention. We always follow the patient's wishes.",sg:"💊 🤝 💙"},
+    ],
+    robber:[
+      {spk:'🦹 Robber',msg:"Back off! You didn't see anything!\n(This looks suspicious — call the police!)",sg:"💨 🏃 ⚠️"},
+      {spk:'🦹 Robber',msg:"Get lost! None of your business!\n(Officers can make an arrest — chase me down!)",sg:"🦹 📞 👮"},
+      {spk:'🦹 Robber',msg:"I'm warning you — stay away!\n(If you're a police officer, you can press E to arrest!)",sg:"⚠️ 🚨 🦹"},
+    ],
+    firefighter:[
+      {spk:`🚒 ${name}`,msg:"Stay back — there's a fire nearby!\nWe use visual alarms and radio to coordinate.\nDeaf firefighters are part of our crew too!",sg:"🔥 🚒 👷"},
+      {spk:`🚒 ${name}`,msg:"Fire safety for deaf residents means strobe smoke alarms,\nvibrating bed shakers, and visual emergency alerts.\nMake sure your home has them!",sg:"🚨 🏠 ✅"},
+      {spk:`🚒 ${name}`,msg:"Our fire station has a text-to-911 service for deaf callers.\nAlways know your local emergency contact options!",sg:"📱 🚒 💡"},
+    ],
+  })[role]||[];
+}
+
+// ═══════════════════════════════════════════════
+//  COLLISION
+// ═══════════════════════════════════════════════
+function blocked(x,z){
+  if(Math.abs(x)>52||Math.abs(z)>52)return true;
+  return G.buildings.some(b=>Math.abs(x-b.x)<b.hw&&Math.abs(z-b.z)<b.hd);
+}
+
+// ═══════════════════════════════════════════════
+//  FPS MOVEMENT
+// ═══════════════════════════════════════════════
+function movePlayer(p){
+  if(G.inDialog||G.inMinigame||G.inTransport||G.paused||G.gameOver)return;
+  let fw=0,rt=0;
+
+  if(deviceMode==='mobile'){
+    fw=-moveJoy.dz; rt=moveJoy.dx;
+  } else {
+    if(keys['KeyW']||keys['ArrowUp'])    fw= 1;
+    if(keys['KeyS']||keys['ArrowDown'])  fw=-1;
+    if(keys['KeyA']||keys['ArrowLeft'])  rt=-1;
+    if(keys['KeyD']||keys['ArrowRight']) rt= 1;
+  }
+
+  if(fw!==0||rt!==0){
+    // FPS forward direction (horizontal, based on yaw)
+    const fwdX=-Math.sin(yaw), fwdZ=-Math.cos(yaw);
+    const rtX  = Math.cos(yaw), rtZ  =-Math.sin(yaw);
+    let mx=fwdX*fw+rtX*rt, mz=fwdZ*fw+rtZ*rt;
+    const len=Math.hypot(mx,mz); if(len>0){mx/=len;mz/=len;}
+    const nx=p.mesh.position.x+mx*p.speed, nz=p.mesh.position.z+mz*p.speed;
+    if(!blocked(nx,p.mesh.position.z)) p.mesh.position.x=nx;
+    if(!blocked(p.mesh.position.x,nz)) p.mesh.position.z=nz;
+    p.mesh.rotation.y=yaw;
+    p.bob+=.15; p.stepTimer++;
+    if(p.stepTimer%18===0) playStep();
+  }
+
+  if(!p.onGround){ p.jumpV-=.012; p.jumpY+=p.jumpV; if(p.jumpY<=0){p.jumpY=0;p.jumpV=0;p.onGround=true;} }
+  p.mesh.position.y=p.jumpY+(fw!==0||rt!==0?Math.abs(Math.sin(p.bob))*.06:0);
+}
+
+function moveNPC(npc){
+  // Police NPC chases nearest robber NPC
+  if(npc.role==='police'&&G.started&&!G.gameOver){
+    let nearestRobber=null, nearestDist=Infinity;
+    for(const other of G.npcs){
+      if(other.role!=='robber') continue;
+      const d=d2(npc.mesh.position,other.mesh.position);
+      if(d<nearestDist){ nearestDist=d; nearestRobber=other; }
+    }
+    if(nearestRobber&&nearestDist<22){
+      npc.target.x=nearestRobber.mesh.position.x;
+      npc.target.z=nearestRobber.mesh.position.z;
+      npc.speed=.07;
+    }
+  }
+  // Firefighter chases nearest active fire
+  if(npc.role==='firefighter'&&G.started&&!G.gameOver){
+    const fire=G.fires.find(f=>!f.extinguished);
+    if(fire){
+      const fd=d2(npc.mesh.position,{x:fire.building.x,z:fire.building.z});
+      npc.target.x=fire.building.x; npc.target.z=fire.building.z;
+      npc.speed=.08;
+      if(fd<2.5&&!fire.extinguishing){
+        fire.extinguishing=true;
+        fire.extTimer=Date.now();
+        floatIcon('💧','50%','44%');
+      }
+    }
+  }
+  // Robber chase / flee logic
+  if(npc.role==='robber'&&G.started&&G.players.length&&!G.gameOver){
+    const p=G.players[0];
+    const pd=d2(p.mesh.position,npc.mesh.position);
+    // Flee from any nearby police NPC
+    let policeClose=false;
+    for(const other of G.npcs){
+      if(other.role!=='police') continue;
+      if(d2(npc.mesh.position,other.mesh.position)<18){ policeClose=true; break; }
+    }
+    if((p.role==='police'&&pd<15)||policeClose){
+      // Flee — push target away from closest threat
+      const threat=policeClose
+        ? G.npcs.find(o=>o.role==='police'&&d2(npc.mesh.position,o.mesh.position)<18)
+        : p;
+      const fx=npc.mesh.position.x-threat.mesh.position.x, fz=npc.mesh.position.z-threat.mesh.position.z;
+      npc.target.x=npc.mesh.position.x+fx*3+rnd(-2,2);
+      npc.target.z=npc.mesh.position.z+fz*3+rnd(-2,2);
+      npc.speed=.10+Math.random()*.02;
+    } else if(p.role==='citizen'&&pd<20){
+      // Only chase citizen players, not police/doctor/firefighter
+      // Don't chase if player is on a safe grass patch
+      const onSafe=G.zones.some(z=>z.isSafe&&Math.abs(p.mesh.position.x-z.x)<z.hw&&Math.abs(p.mesh.position.z-z.z)<z.hd);
+      if(!onSafe){
+        npc.target.x=p.mesh.position.x+rnd(-.3,.3);
+        npc.target.z=p.mesh.position.z+rnd(-.3,.3);
+        npc.speed=.0475;
+      }
+    }
+  }
+  const dx=npc.target.x-npc.mesh.position.x, dz=npc.target.z-npc.mesh.position.z;
+  const dist=Math.hypot(dx,dz);
+  if(dist<.6){npc.target.x=npc.ox+rnd(-12,12);npc.target.z=npc.oz+rnd(-12,12);return;}
+  const nx=dx/dist,nzn=dz/dist;
+  const tx=npc.mesh.position.x+nx*npc.speed, tz=npc.mesh.position.z+nzn*npc.speed;
+  const movedX=!blocked(tx,npc.mesh.position.z); if(movedX) npc.mesh.position.x=tx;
+  const movedZ=!blocked(npc.mesh.position.x,tz); if(movedZ) npc.mesh.position.z=tz;
+  // Stuck detection: if blocked on both axes, steer sideways to navigate around obstacle
+  if(!movedX&&!movedZ){
+    npc._stuckF=(npc._stuckF||0)+1;
+    if(npc._stuckF>6){
+      const side=Math.atan2(nx,nzn)+(Math.random()>.5?1:-1)*Math.PI*(.45+Math.random()*.2);
+      npc.target.x=npc.mesh.position.x+Math.sin(side)*5;
+      npc.target.z=npc.mesh.position.z+Math.cos(side)*5;
+      npc._stuckF=0;
+    }
+  } else { npc._stuckF=0; }
+  npc.mesh.rotation.y=Math.atan2(nx,nzn);
+  npc.bob+=.1; npc.mesh.position.y=Math.abs(Math.sin(npc.bob))*.07;
+}
+
+// ═══════════════════════════════════════════════
+//  FP CAMERA
+// ═══════════════════════════════════════════════
+function updateCamera(){
+  if(!G.players.length)return;
+  const p=G.players[0];
+  camera.position.set(p.mesh.position.x, p.mesh.position.y+EYE_H, p.mesh.position.z);
+  camera.rotation.y=yaw;
+  camera.rotation.x=pitch;
+}
+
+// ═══════════════════════════════════════════════
+//  PROXIMITY (interaction detection in FP)
+// ═══════════════════════════════════════════════
+const IR=3.5;
+function d2(a,b){return Math.hypot(a.x-b.x,a.z-b.z);}
+
+function checkProximity(){
+  if(G.inDialog||G.inMinigame||G.inTransport||!G.players.length){
+    document.getElementById('interact-prompt').style.display='none';
+    // un-highlight all doors when blocked
+    G.zones.forEach(z=>{ if(z.isDoor&&z.doorMesh) z.doorMesh.material=z.doorMat; });
+    return;
+  }
+  const pp=G.players[0]; let best=null,bestD=IR;
+  G.npcs.forEach(npc=>{ const d=d2(pp.mesh.position,npc.mesh.position); if(d<bestD){bestD=d;best={type:'npc',obj:npc};} });
+  G.zones.forEach(zone=>{
+    const ax=Math.abs(pp.mesh.position.x-zone.x),az=Math.abs(pp.mesh.position.z-zone.z);
+    if(ax<zone.hw&&az<zone.hd){const d=Math.hypot(ax,az);if(d<bestD){bestD=d;best={type:'zone',obj:zone};}}
+  });
+  G.cars.forEach(car=>{
+    if(!car.isTaxi) return;
+    const d=d2(pp.mesh.position,car.mesh.position);
+    if(d<5&&d<bestD){bestD=d;best={type:'taxi',obj:car};}
+  });
+  // Firefighter player can extinguish nearby fires
+  if(pp.role==='firefighter'){
+    G.fires.forEach(fire=>{
+      if(fire.extinguished) return;
+      const d=d2(pp.mesh.position,{x:fire.building.x,z:fire.building.z});
+      if(d<4&&d<bestD){bestD=d;best={type:'fire',obj:fire};}
+    });
+  }
+  // highlight/unhighlight door meshes
+  G.zones.forEach(z=>{
+    if(!z.isDoor||!z.doorMesh) return;
+    const near=(best&&best.type==='zone'&&best.obj===z);
+    z.doorMesh.material=near?z.doorHighMat:z.doorMat;
+    if(near) z.doorHighMat.emissiveIntensity=0.6; else z.doorMat.emissiveIntensity=0;
+  });
+  G.nearTarget=best;
+  const pr=document.getElementById('interact-prompt');
+  if(best){
+    pr.style.display='block';
+    const lbl=best.type==='npc'?`Talk to ${best.obj.name}`:best.type==='taxi'?'Hail Taxi':best.type==='fire'?'Extinguish Fire':`Enter ${best.obj.label}`;
+    const prefix=best.type==='taxi'?'🚕 ':best.type==='fire'?'🔥 ':best.type==='zone'&&best.obj.isDoor?'🚪 ':'';
+    pr.textContent=deviceMode==='mobile'?`${prefix}💬 Tap to: ${lbl}`:`${prefix}[E] ${lbl}`;
+  } else { pr.style.display='none'; }
+  const btnAct=document.getElementById('btn-act');
+  if(btnAct){ if(best) btnAct.classList.remove('out-of-range'); else btnAct.classList.add('out-of-range'); }
+}
+
+function doInteract(pi){
+  if(G.inDialog||G.inMinigame||G.inTransport||!G.nearTarget)return;
+  const tgt=G.nearTarget;
+  if(tgt.type==='fire'){
+    const fire=tgt.obj; if(fire.extinguished) return;
+    fire.extinguishing=true; fire.extTimer=Date.now()-5000; // instant extinguish for player
+    const p=G.players[pi]||G.players[0];
+    finishTask(p,'extinguish_fire');
+    showDialog('🔥 Fire Extinguished!','You put out the fire! Great work.\n\nDeaf firefighters use visual pagers, strobe dispatch lights, and touch-based vibrating alerts\nto respond to emergencies just as fast as hearing crews.\n\nYour quick response saved the building! 🚒','🚒 💧 ✅');
+    floatIcon('💧','48%','40%'); floatIcon('✅','52%','44%');
+  } else if(tgt.type==='taxi'){
+    tgt.obj.stopped=true;
+    openTransport('taxi',pi);
+    setTimeout(()=>{ if(tgt.obj) tgt.obj.stopped=false; },12000);
+  } else if(tgt.type==='npc'){
+    const npc=tgt.obj;
+    const p=G.players[pi]||G.players[0];
+    if(npc.role==='robber'&&p&&p.role==='police'){
+      finishTask(p,'arrest_robber');
+      showDialog('🚔 Arrest Made!','You arrested the robber! Great police work, Officer!\n"Hands up — you\'re under arrest!"\nThe community is safer thanks to you.','👮 ✋ 🦹');
+      flashBorder('#FFD700'); floatIcon('⭐','46%','44%');
+      setTimeout(()=>{
+        scene.remove(npc.mesh);
+        const i=G.npcs.indexOf(npc); if(i>-1) G.npcs.splice(i,1);
+        if(npc.labelEl) npc.labelEl.remove();
+      },600);
+      return;
+    }
+    // Emergency response — police talks to distressed citizen
+    if(npc.emergency && p && p.role==='police'){
+      npc.emergency=false;
+      if(npc.labelEl){ const ico=npc.labelEl.querySelector('.nl-icon'); if(ico) ico.textContent='🧑'; }
+      finishTask(p,'respond_emergency');
+      showDialog('🆘 Emergency Response!','You responded to the emergency call!\nThe deaf citizen needed urgent help — you communicated using visual signals,\nyour notepad, and basic sign language. They\'re safe now.\n\n"Thank you, Officer! ASL helped us understand each other." 🤟','👮 🤟 ❤️');
+      flashBorder('#00FF44'); floatIcon('⭐','46%','44%'); return;
+    }
+    const dlg=npc.dialogs[npc.dIdx%npc.dialogs.length]; npc.dIdx++;
+    showDialog(dlg.spk,dlg.msg,dlg.sg);
+    if(p){
+      if(npc.role==='police'&&p.role==='citizen') finishTask(p,'talk_police');
+      if(npc.role==='citizen'&&p.role==='police') finishTask(p,'help_citizen');
+      if(npc.role==='doctor'&&p.role==='citizen') finishTask(p,'talk_doctor');
+      if(npc.role==='citizen'&&p.role==='doctor'){
+        p.citizensTalked++;
+        if(p.citizensTalked>=3) finishTask(p,'talk_3_citizens');
+      }
+    }
+  } else { handleZone(tgt.obj,pi); }
+}
+
+// ═══════════════════════════════════════════════
+//  ZONES
+// ═══════════════════════════════════════════════
+let pendingAudiogram=null;
+
+function handleZone(zone,pi){
+  const p=G.players[pi]||G.players[0]; if(!p)return;
+  if(zone.id==='clinic'){
+    finishTask(p,'visit_clinic'); finishTask(p,'open_clinic');
+    if(p.role==='doctor'){
+      showDialog('System 📋','You opened the Deaf Clinic! Perform the audiogram to assess your patient\'s hearing.','🩺 📊 👂');
+      pendingAudiogram=p;
+    } else if(p.role==='citizen'){
+      showDialog('Clinic Receptionist 👩‍⚕️','Welcome to the Deaf Clinic!\nAn audiogram will measure your hearing across frequencies.\nIf you have significant loss, treatment here can help you hear again!','🏥 👋 😊');
+      pendingAudiogram=p;
+    } else {
+      showDialog('Clinic Staff','Hello Officer! Thank you for ensuring access for our deaf patients.','👮 🤝 ❤️');
+    }
+  } else if(zone.id==='police'){
+    finishTask(p,'patrol'); finishTask(p,'visit_station');
+    if(p.role==='police'){
+      showDialog('Police Station 🚔','Welcome back, Officer!\nYour station uses flashing alert lights, text-based dispatch, and visual pagers.\nDeaf officers serve with equal dedication — the department is proud of you.','🚔 📝 ✅');
+    } else if(p.role==='citizen'){
+      showDialog('Police Station 🚔','The front desk has a text-communication terminal.\nDeaf citizens can report crimes, file reports, and access services\nthrough ASL interpreters or written communication. ✍️','🚔 🤟 📝');
+    } else {
+      showDialog('Police Station 🚔','The medical liaison is available if any officers need audiological support.\nAccessible workplaces start with inclusive policies!','👮 🩺 ❤️');
+    }
+  } else if(zone.id==='homes'){
+    finishTask(p,'visit_home');
+    const homeLines=[
+      'Welcome home! Many deaf people rely on visual alert systems:\nFlashing doorbells, vibrating alarm clocks, and text-based video phones.',
+      'At home, deaf people use:\n• Flashing smoke/fire alarms 🔴\n• Vibrating wake-up shakers ⏰\n• Video relay services for phone calls 📱\n• Smart home devices with visual notifications 💡',
+      'Subtitles and closed captions make TV and streaming accessible.\nMany services now offer ASL-interpreted content too! 📺',
+      'The home is where deaf culture is often taught and celebrated.\nFamily dinners, storytelling in sign language, and silent laughter —\na rich world of connection without sound.',
+    ];
+    showDialog('🏠 Home',homeLines[Math.floor(Math.random()*homeLines.length)],'🏠 💡 📺');
+  } else if(zone.id==='community'){
+    finishTask(p,'patrol'); finishTask(p,'visit_community');
+    if(p.role==='doctor'){
+      showDialog('Community Center 🏛 — Talk','You delivered a public talk on deaf awareness!\n\n"Early diagnosis can change a child\'s entire trajectory. Cochlear implants, hearing aids, and sign language are all valid choices — what matters is access and inclusion."\n\nThe audience gave a standing ovation! 👏','🏛 🎤 👏');
+    } else if(p.role==='police'){
+      showDialog('Community Center 🏛','Great to see the police liaison here!\nOfficers who learn basic sign language build far better trust\nwith deaf residents. Tonight\'s workshop covers emergency signs.','🚔 🤟 🏛');
+    } else {
+      showDialog('Community Center 🏛','Tonight: free sign language workshop for everyone!\nSign language is a complete natural language — not just gestures.\nBridging deaf and hearing communities one sign at a time. 🤟','🤟 ❤️ 🏛');
+    }
+  } else if(zone.id==='library'){
+    finishTask(p,'visit_library');
+    const libFacts=[
+      '📖 In 1817, Thomas Hopkins Gallaudet founded the first school for the deaf in America — the American School for the Deaf in Hartford, Connecticut.',
+      '📖 There are over 300 distinct sign languages worldwide! Each country has its own — ASL, BSL, Auslan, JSL, Libras, and many more.',
+      '📖 Deaf culture has its own art, humour, poetry, and storytelling traditions. DeafBlind people use tactile signing by touching the signer\'s hands.',
+      '📖 Ludwig van Beethoven composed his famous 9th Symphony while completely deaf. He felt the vibrations of the music through the floor.',
+      '📖 The cochlear implant was first tested in 1961. Modern implants process 22 frequency channels and can be programmed wirelessly.',
+      '📖 Helen Keller — DeafBlind from age 19 months — became a world-famous author, activist, and lecturer who inspired millions worldwide.',
+    ];
+    const fact=libFacts[Math.floor(Math.random()*libFacts.length)];
+    if(p.role==='doctor'){
+      showDialog('📚 Library — Research Wing',fact+'\n\nYour research here will improve care for your patients. Well done!','📚 🔬 💡');
+    } else {
+      showDialog('📚 Library',fact,'📚 💡 🌍');
+    }
+    floatIcon('📚','50%','35%');
+  } else if(zone.id==='pharmacy'){
+    finishTask(p,'visit_pharmacy'); finishTask(p,'get_prescription');
+    if(p.role==='doctor'){
+      showDialog('💊 Pharmacy — Supply Room','You restocked the pharmacy with:\n• Digital hearing aid batteries (size 10, 13, 312)\n• Cochlear implant coils and processors\n• Ear moulds and domes\n• Drying kits for moisture protection\n\nGood work keeping the supply chain running!','💊 🔋 ✅');
+    } else if(p.role==='citizen'){
+      showDialog('Pharmacist 💊','Your hearing aid prescription is ready!\n\n✅ Digital behind-the-ear hearing aid\n✅ 3-month battery supply\n✅ Cleaning kit and carrying case\n\nRemember: come back every 6 months — your hearing may change!','💊 🦻 😊');
+    } else {
+      showDialog('Pharmacy 💊','Everything looks well-stocked here, Officer.\nAccessible pharmacy services are essential for the deaf community.\nThank you for keeping the neighbourhood safe!','👮 💊 ✅');
+    }
+  } else if(zone.id==='firestation'){
+    finishTask(p,'visit_firestation');
+    if(p.role==='firefighter'){
+      showDialog('🚒 Fire Station','Welcome back! Your station uses strobe alarms, vibrating pagers, and text-based dispatch.\nDeaf firefighters have served with distinction for decades.\nGear up — there may be a fire call soon!','🚒 🔥 👷');
+    } else {
+      showDialog('🚒 Fire Station','The fire department uses visual alert systems and vibrating pagers\nso deaf firefighters on the crew never miss a call.\nAccessibility in emergency services saves lives!','🚒 💡 ❤️');
+    }
+  } else if(zone.id==='airport'){ openTransport('plane',pi);
+  } else if(zone.id==='train'){   openTransport('train',pi);
+  } else if(zone.id==='taxi'){    openTransport('taxi',pi); }
+}
+
+// ═══════════════════════════════════════════════
+//  TRANSPORT
+// ═══════════════════════════════════════════════
+function openTransport(type,pi){
+  G.inTransport=true;
+  if(pointerLocked) document.exitPointerLock();
+  const panel=document.getElementById('transport-panel');
+  const title=document.getElementById('transport-title');
+  const desc =document.getElementById('transport-desc');
+  const grid =document.getElementById('dest-grid');
+  grid.innerHTML='';
+  if(type==='plane'){
+    title.textContent='✈️ Airport — Choose Country';
+    desc.textContent='Fly to any country. Each city has its own layout and culture.';
+    Object.entries(COUNTRIES).forEach(([id,C])=>{
+      if(id===currentCountry)return;
+      const btn=document.createElement('div'); btn.className='dest-btn';
+      btn.innerHTML=`<span class="dflag">${C.flag}</span><b>${C.name}</b><br><small>${C.city}</small>`;
+      btn.onclick=()=>travelTo(id); grid.appendChild(btn);
+    });
+  } else if(type==='train'){
+    title.textContent='🚂 Train Station — Local Routes';
+    desc.textContent='Fast travel to different parts of the city.';
+    [['Clinic District','clinic'],['Downtown','community'],['Police Quarter','police']].forEach(([lbl,dest])=>{
+      const btn=document.createElement('div'); btn.className='dest-btn';
+      btn.innerHTML=`🏙️ <b>${lbl}</b>`; btn.onclick=()=>trainTo(dest); grid.appendChild(btn);
+    });
+  } else {
+    title.textContent='🚕 Taxi — Quick Ride';
+    desc.textContent='Get a taxi anywhere in the city instantly.';
+    [['🏥 Deaf Clinic','clinic'],['🚔 Police Station','police'],['🏛 Community Center','community'],['✈️ Airport','airport']].forEach(([lbl,dest])=>{
+      const btn=document.createElement('div'); btn.className='dest-btn';
+      btn.innerHTML=`<b>${lbl}</b>`; btn.onclick=()=>taxiTo(dest); grid.appendChild(btn);
+    });
+  }
+  panel.style.display='block';
+}
+
+function closeTransport(){
+  document.getElementById('transport-panel').style.display='none';
+  G.inTransport=false;
+  if(deviceMode==='desktop'&&G.started) document.getElementById('lock-overlay').classList.add('show');
+}
+
+function travelTo(cid){
+  closeTransport();
+  currentCountry=cid;
+  const C=COUNTRIES[cid];
+  flashOverlay('rgba(255,255,255,.85)');
+  setTimeout(()=>{
+    buildWorld(cid);
+    G.npcs.forEach(n=>scene.remove(n.mesh)); G.npcs.length=0;
+    spawnCountryNPCs(G.players[0].role);
+    G.players.forEach(p=>{p.mesh.position.set(0,0,0); yaw=0; pitch=0;});
+    showDialog(`${C.flag} Arrived in ${C.name}`,C.welcome+'\n\nExplore the city, visit the clinic, and talk to locals!',C.flag+' 🤟 👋');
+    finishTask(G.players[0],'travel');
+    if(canHear()){ ensureAudio(); setTimeout(()=>startCountryAmbient(cid),600); }
+  },400);
+}
+
+function trainTo(dest){
+  closeTransport();
+  const zone=G.zones.find(z=>z.id===dest);
+  if(zone&&G.players.length){ flashOverlay('rgba(100,100,255,.3)'); G.players[0].mesh.position.set(zone.x+4,0,zone.z+4); }
+  if(deviceMode==='desktop') document.getElementById('lock-overlay').classList.add('show');
+}
+
+function taxiTo(dest){
+  closeTransport();
+  if(G.players.length) finishTask(G.players[0],'ride_taxi');
+  const zone=G.zones.find(z=>z.id===dest);
+  if(zone&&G.players.length){ flashOverlay('rgba(255,200,0,.3)'); G.players[0].mesh.position.set(zone.x+3,0,zone.z+3); }
+  if(deviceMode==='desktop') document.getElementById('lock-overlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════
+//  DIALOG
+// ═══════════════════════════════════════════════
+function showDialog(spk,msg,sg){
+  G.inDialog=true;
+  if(pointerLocked) document.exitPointerLock();
+  document.getElementById('dlg-spk').textContent=spk;
+  document.getElementById('dlg-msg').textContent=msg;
+  document.getElementById('dlg-sg').textContent=sg||'';
+  document.getElementById('dialog').style.display='block';
+  document.getElementById('interact-prompt').style.display='none';
+  flashBorder('#3399ff'); playNotify();
+}
+
+function closeDialog(){
+  G.inDialog=false;
+  document.getElementById('dialog').style.display='none';
+  if(pendingAudiogram){const p=pendingAudiogram;pendingAudiogram=null;setTimeout(()=>openAudiogram(p),350);}
+  else if(deviceMode==='desktop'&&G.started) document.getElementById('lock-overlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════
+//  SIGN BUTTONS
+// ═══════════════════════════════════════════════
+const SIGN_FACTS={
+  'I Love You': 'The ILY handshape combines I, L, and Y — a universal symbol of deaf culture worldwide.',
+  'Hello':      'The "Hello" wave in ASL mirrors a military salute, moving the hand outward from the forehead.',
+  'Stop':       'The flat hand cutting down on the palm is ASL for STOP — clear, visual, unmistakable.',
+  'Call me':    'The shaka / "hang loose" hand means "call me" — popular in ASL and many cultures.',
+  'Yes / OK':   'A thumbs up and a nodding fist both convey YES in sign language — affirmative and positive.',
+  'Yes/OK':     'A thumbs up and a nodding fist both convey YES in sign language — affirmative and positive.',
+  'Thank you':  'Touching your chin and moving your hand outward — "thank you" in ASL. Graceful and universal.',
+  'What?':      'Open palms facing up with a shoulder shrug means "What?" or "I don\'t understand" in ASL.',
+};
+function sendSign(emoji,label){
+  floatIcon(emoji,'46%','42%');
+  G.signsUsed++;
+  const p=G.players[0];
+  if(p&&G.signsUsed>=3) finishTask(p,'use_signs');
+  const fact=SIGN_FACTS[label]||'Sign languages are complete natural languages with their own grammar and culture.';
+  showDialog(`You signed: ${label} ${emoji}`,
+    `${fact}\n\nSign languages worldwide: ASL 🇺🇸 · BSL 🇬🇧 · JSL 🇯🇵 · Auslan 🇦🇺 · Libras 🇧🇷 · ASL is also used in Canada 🇨🇦\n\nLearning even a few signs builds real bridges between deaf and hearing people. 🌍`,
+    emoji+' 🤟 ✋');
+}
+
+// ═══════════════════════════════════════════════
+//  AUDIOGRAM MINI-GAME
+// ═══════════════════════════════════════════════
+const FREQS=[250,500,1000,2000,4000,8000];
+let audioPts=[],audioDone=false,audioPlayer=null;
+
+function openAudiogram(player){
+  audioPts=[]; audioDone=false; audioPlayer=player;
+  G.inMinigame=true;
+  if(pointerLocked) document.exitPointerLock();
+  const panel=document.getElementById('audiogram-panel');
+  const ac=document.getElementById('audiogram-canvas');
+  ac.width=panel.clientWidth-36;
+  panel.style.display='block';
+  drawAudiogram();
+  document.getElementById('audiogram-status').textContent='Click to mark thresholds (0/6 done).';
+  ac.onclick=handleAudioClick;
+  ac.ontouchstart=e=>{e.preventDefault();const t=e.touches[0];handleAudioClick({clientX:t.clientX,clientY:t.clientY});};
+}
+
+function drawAudiogram(){
+  const c=document.getElementById('audiogram-canvas'),ctx=c.getContext('2d');
+  const W=c.width,H=c.height,ML=54,MT=28,MR=16,MB=36,GW=W-ML-MR,GH=H-MT-MB;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#f9f9f9'; ctx.fillRect(0,0,W,H);
+  [{db:0,h:25,c:'rgba(80,200,80,.13)',l:'Normal'},{db:25,h:15,c:'rgba(200,220,80,.15)',l:'Mild'},
+   {db:40,h:25,c:'rgba(255,165,0,.13)',l:'Moderate'},{db:65,h:55,c:'rgba(220,50,50,.12)',l:'Severe+'}].forEach(z=>{
+    ctx.fillStyle=z.c; ctx.fillRect(ML,MT+(z.db/120)*GH,GW,(z.h/120)*GH);
+    ctx.fillStyle='#888'; ctx.font='9px Arial'; ctx.textAlign='left'; ctx.fillText(z.l,ML+3,MT+(z.db/120)*GH+10);
+  });
+  ctx.strokeStyle='#ccc'; ctx.lineWidth=.8;
+  [0,20,40,60,80,100,120].forEach(db=>{
+    const y=MT+(db/120)*GH; ctx.beginPath(); ctx.moveTo(ML,y); ctx.lineTo(W-MR,y); ctx.stroke();
+    ctx.fillStyle='#444'; ctx.font='10px Arial'; ctx.textAlign='right'; ctx.fillText(db+' dB',ML-3,y+3);
+  });
+  FREQS.forEach((f,i)=>{
+    const x=ML+(i/(FREQS.length-1))*GW; ctx.beginPath(); ctx.moveTo(x,MT); ctx.lineTo(x,H-MB); ctx.stroke();
+    ctx.fillStyle='#444'; ctx.font='10px Arial'; ctx.textAlign='center'; ctx.fillText(f>=1000?f/1000+'k':f,x,H-MB+14);
+  });
+  ctx.fillStyle='#333'; ctx.font='bold 11px Arial'; ctx.textAlign='center'; ctx.fillText('Frequency (Hz)',W/2,H-1);
+  ctx.save(); ctx.translate(12,H/2); ctx.rotate(-Math.PI/2); ctx.fillText('Hearing Level (dB HL)',0,0); ctx.restore();
+  if(audioPts.length>1){
+    const s=[...audioPts].sort((a,b)=>a.fi-b.fi);
+    ctx.strokeStyle='#e94560'; ctx.lineWidth=2; ctx.beginPath();
+    s.forEach((p,i)=>{const x=ML+(p.fi/(FREQS.length-1))*GW,y=MT+(p.db/120)*GH;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();
+  }
+  audioPts.forEach(pt=>{
+    const x=ML+(pt.fi/(FREQS.length-1))*GW,y=MT+(pt.db/120)*GH;
+    ctx.fillStyle='#e94560'; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#900'; ctx.lineWidth=1.5; ctx.stroke();
+  });
+}
+
+function handleAudioClick(e){
+  if(audioDone)return;
+  const c=document.getElementById('audiogram-canvas'),rect=c.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(c.width/rect.width),my=(e.clientY-rect.top)*(c.height/rect.height);
+  const ML=54,MT=28,MR=16,MB=36,GW=c.width-ML-MR,GH=c.height-MT-MB;
+  const rx=(mx-ML)/GW,ry=(my-MT)/GH;
+  if(rx<0||rx>1||ry<0||ry>1)return;
+  const fi=Math.round(rx*(FREQS.length-1)),db=Math.round(ry*120);
+  audioPts=audioPts.filter(p=>p.fi!==fi); audioPts.push({fi,db,freq:FREQS[fi]});
+  drawAudiogram(); audioDone=audioPts.length>=FREQS.length;
+  document.getElementById('audiogram-status').textContent=audioDone
+    ?'All done! Press Submit.':`Marked ${FREQS[fi]}Hz at ${db} dB (${audioPts.length}/${FREQS.length})`;
+  if(canHear()){ensureAudio();playTone(FREQS[fi]*.5,.3,'sine',.05);}
+}
+
+function submitAudiogram(){
+  if(audioPts.length<3){document.getElementById('audiogram-status').textContent='Mark at least 3 frequencies!';return;}
+  document.getElementById('audiogram-panel').style.display='none';
+  G.inMinigame=false;
+  const avg=audioPts.reduce((s,p)=>s+p.db,0)/audioPts.length;
+  let diag,rx,canTreat;
+  if     (avg<=25){diag='Normal Hearing';           rx='No intervention needed. Continue regular check-ups.';                                            canTreat=false;}
+  else if(avg<=40){diag='Mild Hearing Loss';         rx='Hearing aids recommended in noisy environments.';                                               canTreat=true;}
+  else if(avg<=55){diag='Moderate Hearing Loss';     rx='Hearing aids strongly recommended. Assistive listening devices will help.';                    canTreat=true;}
+  else if(avg<=70){diag='Moderately Severe Loss';    rx='Powerful hearing aids or cochlear implant evaluation advised.';                                canTreat=true;}
+  else if(avg<=90){diag='Severe Hearing Loss';       rx='Cochlear implant recommended. Sign language training is highly beneficial.';                  canTreat=true;}
+  else            {diag='Profound Hearing Loss';     rx='Cochlear implant and sign language as primary communication. Deaf community support essential.';canTreat=true;}
+
+  finishTask(audioPlayer,'audiogram'); finishTask(audioPlayer,'prescribe');
+  const treatMsg=canTreat?'\n\n✅ TREATMENT APPLIED — You can now hear sounds!':'';
+
+  setTimeout(()=>{
+    showDialog(`Audiogram Results (avg ${Math.round(avg)} dB HL)`,
+      `Diagnosis: ${diag}\n\nTreatment: ${rx}${treatMsg}`,
+      avg>70?'🦻 🤟 💙':avg>40?'🔊 👂 💊':'✅ 👂 😊');
+    if(canTreat){
+      audioPlayer.treated=true; updateHearingStatus();
+      finishTask(audioPlayer,'treat_deafness');
+      ensureAudio(); playSuccess();
+      floatIcon('🎉','44%','38%'); floatIcon('👂','54%','42%');
+    }
+  },300);
+}
+
+// ═══════════════════════════════════════════════
+//  TASKS & STATUS
+// ═══════════════════════════════════════════════
+function finishTask(player,id){
+  const t=player.tasks.find(t=>t.id===id&&!t.done); if(!t)return;
+  t.done=true; player.score+=100;
+  updateTaskUI(); floatIcon('✅','46%','52%');
+  // Check all tasks done
+  if(player.tasks.every(t=>t.done)){
+    setTimeout(()=>{
+      showDialog('🏆 All Tasks Complete!',
+        `Amazing work! You completed every task as a ${player.role}!\n\nFinal score: ${player.score} points 🌟\n\nYou've explored deaf awareness across the world.\nThank you for learning about deaf culture, accessibility, and inclusion! 🌍🤟`,
+        '🏆 🌟 🤟');
+      flashBorder('#FFD700');
+      floatIcon('🏆','45%','38%'); floatIcon('🌟','55%','42%');
+    },600);
+  }
+}
+function updateTaskUI(){
+  if(!G.players.length)return;
+  const p=G.players[0];
+  const done=p.tasks.filter(t=>t.done).length;
+  document.getElementById('task-list').innerHTML=
+    p.tasks.map(t=>`<div class="task ${t.done?'done':''}">${t.done?'✓':'○'} ${t.text}</div>`).join('');
+  const sc=document.getElementById('score-display');
+  if(sc) sc.textContent=`${p.score} pts (${done}/${p.tasks.length})`;
+}
+// ═══════════════════════════════════════════════
+//  LIVES & DAMAGE
+// ═══════════════════════════════════════════════
+function updateLivesDisplay(){
+  if(!G.players.length) return;
+  const lives=G.players[0].lives;
+  const el=document.getElementById('lives-display');
+  if(!el) return;
+  const full=Math.max(0,Math.min(10,lives));
+  el.innerHTML='❤️'.repeat(full)+'🖤'.repeat(Math.max(0,10-full))+` <b style="font-size:.7rem">${lives}/10</b>`;
+}
+
+// ═══════════════════════════════════════════════
+//  FIRE SYSTEM
+// ═══════════════════════════════════════════════
+const _fireTmp=new THREE.Vector3();
+function startFire(){
+  const candidates=G.buildings.filter(b=>b.canFire&&!G.fires.find(f=>f.building===b&&!f.extinguished));
+  if(!candidates.length||G.fires.filter(f=>!f.extinguished).length>=2) return;
+  const b=candidates[Math.floor(Math.random()*candidates.length)];
+  // Empty 3D marker (no visual geometry — emojis handle the display)
+  const fg=new THREE.Group(); fg.position.set(b.x,0,b.z); scene.add(fg);
+  // HTML emoji overlay
+  const el=document.createElement('div'); el.className='fire-label';
+  const count=6+Math.floor(Math.random()*4);
+  for(let i=0;i<count;i++){
+    const e=document.createElement('span'); e.className='fire-e'; e.textContent='🔥';
+    e.style.animationDelay=(i*0.07)+'s';
+    el.appendChild(e);
+  }
+  document.getElementById('hud').appendChild(el);
+  G.fires.push({mesh:fg,el,building:b,startTime:Date.now(),extinguishing:false,extTimer:0,extinguished:false});
+  flashBorder('#FF4400'); floatIcon('🔥','50%','35%');
+  showPoliceToast('🔥 Fire at '+(b.id||'building')+'! Firefighters responding…',5000);
+}
+function updateFires(){
+  const now=Date.now();
+  for(const fire of G.fires){
+    if(fire.extinguished) continue;
+    // Project building top to screen and position emoji div
+    if(fire.el&&G.players.length){
+      _fireTmp.set(fire.building.x, fire.building.h+1, fire.building.z);
+      _fireTmp.project(camera);
+      if(_fireTmp.z>1||_fireTmp.z<-1){ fire.el.style.display='none'; }
+      else{
+        const sx=(_fireTmp.x+1)/2*innerWidth;
+        const sy=(-_fireTmp.y+1)/2*innerHeight;
+        fire.el.style.display='flex';
+        fire.el.style.left=sx+'px';
+        fire.el.style.top=sy+'px';
+      }
+    }
+    // Extinguish after 6 seconds of firefighter NPC contact
+    if(fire.extinguishing&&now-fire.extTimer>6000){
+      fire.extinguished=true;
+      if(fire.mesh.parent) fire.mesh.parent.remove(fire.mesh);
+      if(fire.el&&fire.el.parentNode) fire.el.parentNode.removeChild(fire.el);
+      floatIcon('✅','50%','44%');
+      showPoliceToast('✅ Fire extinguished!',3000);
+    }
+    // Auto-extinguish after 3 minutes
+    if(now-fire.startTime>180000){
+      fire.extinguished=true;
+      if(fire.mesh.parent) fire.mesh.parent.remove(fire.mesh);
+      if(fire.el&&fire.el.parentNode) fire.el.parentNode.removeChild(fire.el);
+    }
+  }
+  G.fires=G.fires.filter(f=>!f.extinguished);
+}
+function startFireEvents(){
+  // First fire comes quickly so players notice the system
+  setTimeout(()=>{ if(G.started&&!G.gameOver) startFire(); },12000);
+  function scheduleNext(){
+    const delay=35000+Math.random()*35000;
+    setTimeout(()=>{
+      if(G.started&&!G.gameOver) startFire();
+      scheduleNext();
+    },delay);
+  }
+  setTimeout(scheduleNext,15000);
+}
+const POLICE_COOLDOWN=30000;
+function showPoliceToast(msg,dur=3000){
+  const t=document.getElementById('police-toast');
+  if(!t)return;
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{ t.style.display='none'; },dur);
+}
+function callPolice(){
+  if(!G.started||G.gameOver||G.paused||!G.players.length) return;
+  const now=Date.now();
+  const remaining=POLICE_COOLDOWN-(now-G.lastPoliceCall);
+  if(remaining>0){ showPoliceToast(`⏳ Police already called — ${Math.ceil(remaining/1000)}s until next call`); return; }
+  G.lastPoliceCall=now;
+  const btn=document.getElementById('call-police-btn');
+  if(btn) btn.classList.add('on-cooldown');
+  setTimeout(()=>{ if(btn) btn.classList.remove('on-cooldown'); }, POLICE_COOLDOWN);
+  const p=G.players[0];
+  const angle=Math.random()*Math.PI*2;
+  const dist=5+Math.random()*4;
+  const sx=p.mesh.position.x+Math.cos(angle)*dist;
+  const sz=p.mesh.position.z+Math.sin(angle)*dist;
+  const names=['Officer Brooks','Officer Reyes','Officer Singh','Officer Walsh'];
+  const name=names[Math.floor(Math.random()*names.length)];
+  spawnNPC(sx,sz,'police',name);
+  const spawned=G.npcs[G.npcs.length-1];
+  createNPCLabel(spawned);
+  showPoliceToast('🚔 Police called! '+name+' is on the way!');
+  floatIcon('🚔','50%','42%');
+}
+function takeDamage(amount,source){
+  if(!G.players.length||G.gameOver||G.inDialog||G.inMinigame) return;
+  const p=G.players[0];
+  p.lives=Math.max(0,p.lives-amount);
+  updateLivesDisplay();
+  // Red flash
+  const df=document.getElementById('damage-flash');
+  if(df){ df.style.background='rgba(255,0,0,.45)'; setTimeout(()=>df.style.background='rgba(255,0,0,0)',160); }
+  flashBorder('#FF0000');
+  floatIcon(source==='car'?'🚗💥':'🦹⚔️','48%','44%');
+  if(canHear()){ ensureAudio(); playTone(150+Math.random()*80,.35,'sawtooth',.09); }
+  if(p.lives<=0) triggerGameOver(source);
+}
+
+function triggerGameOver(source){
+  G.gameOver=true; G.started=false;
+  if(pointerLocked) document.exitPointerLock();
+  document.getElementById('lives-display').style.display='none';
+  document.getElementById('call-police-btn').style.display='none';
+  const msg=source==='car'
+    ?'You were hit by a car! Always look both ways — even in a video game. 🚗'
+    :'You were overwhelmed by robbers! Next time, stay near other people or call the police. 🦹';
+  document.getElementById('gameover-msg').innerHTML=msg+`<br><br>Score: <b style="color:#FFD700">${(G.players[0]||{score:0}).score} pts</b>`;
+  document.getElementById('gameover-overlay').style.display='flex';
+  if(canHear()){ ensureAudio(); playTone(120,.9,'sawtooth',.1); setTimeout(()=>playTone(100,.9,'sawtooth',.08),400); }
+  floatIcon('💀','45%','38%');
+}
+
+function checkDamage(){
+  if(!G.started||!G.players.length||G.gameOver||G.paused) return;
+  const p=G.players[0]; if(p.lives<=0) return;
+  const now=Date.now();
+  const vb=document.getElementById('visual-border');
+
+  // Robber proximity — 1 life per second while within 1.8 units
+  let robberClose=false;
+  for(const npc of G.npcs){
+    if(npc.role!=='robber') continue;
+    const d=d2(p.mesh.position,npc.mesh.position);
+    if(d<1.8){ robberClose=true; if(now-p.lastRobberHit>=1000){ p.lastRobberHit=now; takeDamage(1,'robber'); } break; }
+    // Danger warning when chasing (within 10 units, non-police)
+    if(d<10&&p.role!=='police') robberClose=true;
+  }
+  if(vb){ if(robberClose&&p.role!=='police') vb.classList.add('danger'); else vb.classList.remove('danger'); }
+
+  // Car collision — 2 lives, 2s cooldown (safe on grass patches)
+  const onGrass=G.zones.some(z=>z.isSafe&&Math.abs(p.mesh.position.x-z.x)<z.hw&&Math.abs(p.mesh.position.z-z.z)<z.hd);
+  if(!onGrass&&now-p.lastCarHit>=2000){
+    for(const car of G.cars){
+      if(car.stopped) continue;
+      if(d2(p.mesh.position,car.mesh.position)<1.9){ p.lastCarHit=now; takeDamage(2,'car'); break; }
+    }
+  }
+}
+
+function updateHearingStatus(){
+  const el=document.getElementById('hearing-status');
+  const meter=document.getElementById('sound-meter');
+  if(canHear()){
+    el.textContent='🔊 Can Hear'; el.style.color='#4caf50';
+    document.getElementById('role-badge').style.borderColor='#4caf50';
+    meter.style.display='flex';
+    startCountryAmbient(currentCountry);
+  } else {
+    el.textContent='🔇 Cannot Hear'; el.style.color='#ff6b6b';
+    meter.style.display='none';
+    if(ambientInterval){ clearInterval(ambientInterval); ambientInterval=null; }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  VISUAL FX
+// ═══════════════════════════════════════════════
+function flashBorder(color){
+  const b=document.getElementById('visual-border');
+  b.style.border=`10px solid ${color}`;
+  setTimeout(()=>{b.style.border='8px solid transparent';},900);
+}
+function floatIcon(icon,left,top){
+  const d=document.createElement('div');
+  d.className='float-icon'; d.textContent=icon; d.style.left=left; d.style.top=top;
+  document.getElementById('app').appendChild(d); setTimeout(()=>d.remove(),850);
+}
+function flashOverlay(color){
+  const d=document.createElement('div');
+  d.className='flash-overlay'; d.style.background=color;
+  document.getElementById('app').appendChild(d); setTimeout(()=>d.remove(),500);
+}
+
+let ambientOn=false;
+function startAmbientEvents(){
+  if(ambientOn)return; ambientOn=true;
+  const evs=[{i:'🔔',c:'rgba(255,200,0,.15)'},{i:'🚨',c:'rgba(255,50,50,.12)'},{i:'📳',c:'rgba(100,100,255,.1)'},{i:'💡',c:'rgba(255,255,100,.1)'},{i:'🚒',c:'rgba(255,80,0,.1)'}];
+  setInterval(()=>{
+    if(!G.started)return;
+    const ev=evs[Math.floor(Math.random()*evs.length)];
+    floatIcon(ev.i,(16+Math.random()*68)+'%',(14+Math.random()*48)+'%');
+    flashOverlay(ev.c);
+    if(canHear()){ensureAudio();playTone(440+Math.random()*200,.2,'sine',.03);}
+  },9000);
+}
+
+// ═══════════════════════════════════════════════
+//  KEYBOARD INPUT
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(!G.started)return;
+  if(e.code==='KeyE'&&!G.inDialog&&!G.inMinigame&&!G.inTransport){ensureAudio();doInteract(0);}
+  if(e.code==='KeyQ'&&!G.inDialog&&!G.inMinigame&&!G.inTransport&&deviceMode==='desktop'){
+    const ds=document.getElementById('desktop-signs');
+    if(ds){ const showing=ds.style.display==='flex'; ds.style.display=showing?'none':'flex'; if(!showing&&pointerLocked) document.exitPointerLock(); }
+  }
+
+  if(e.code==='Space'&&!G.inDialog){doJump(G.players[0]);}
+  if(e.code==='KeyF'&&!G.inDialog&&!G.inMinigame&&!G.inTransport){callPolice();}
+  if(e.code==='Escape'){
+    if(G.inDialog)closeDialog();
+    else if(G.inTransport)closeTransport();
+    else if(G.inMinigame){document.getElementById('audiogram-panel').style.display='none';G.inMinigame=false;
+      if(deviceMode==='desktop') document.getElementById('lock-overlay').classList.add('show');
+    }
+    else if(deviceMode==='desktop'){
+      if(G.paused) resumeGame();
+      else pauseGame();
+    }
+  }
+});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+function doJump(p){if(p&&p.onGround){p.onGround=false;p.jumpV=.2;}}
+
+// ═══════════════════════════════════════════════
+//  MOBILE — MOVEMENT JOYSTICK (left)
+// ═══════════════════════════════════════════════
+(function setupMoveJoy(){
+  const zone=document.getElementById('move-zone');
+  const handle=document.getElementById('mj-handle');
+  const R=33, cx=55, cy=55;
+  let tid=null;
+  function move(ex,ey){
+    const rect=zone.getBoundingClientRect();
+    let dx=ex-(rect.left+cx),dy=ey-(rect.top+cy);
+    const dist=Math.hypot(dx,dy); if(dist>R){dx=dx/dist*R;dy=dy/dist*R;}
+    handle.style.left=(cx-22+dx)+'px'; handle.style.top=(cy-22+dy)+'px';
+    moveJoy.dx=dx/R; moveJoy.dz=dy/R;
+  }
+  function reset(){handle.style.left=(cx-22)+'px';handle.style.top=(cy-22)+'px';moveJoy.dx=0;moveJoy.dz=0;}
+  zone.addEventListener('touchstart',e=>{e.preventDefault();tid=e.changedTouches[0].identifier;move(e.changedTouches[0].clientX,e.changedTouches[0].clientY);},{passive:false});
+  document.addEventListener('touchmove',e=>{for(const t of e.changedTouches){if(t.identifier===tid){move(t.clientX,t.clientY);break;}}},{passive:false});
+  document.addEventListener('touchend',e=>{for(const t of e.changedTouches){if(t.identifier===tid){reset();tid=null;break;}}});
+})();
+
+// ═══════════════════════════════════════════════
+//  MOBILE — TOUCH-TO-LOOK (drag anywhere outside joystick)
+// ═══════════════════════════════════════════════
+(function setupTouchLook(){
+  const LOOK_SENSE = 0.007;
+  let tid = null, lx = 0, ly = 0;
+
+  function isJoyOrUI(t) {
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    return el && (
+      el.closest('#move-zone') ||
+      el.closest('#mobile-btns') ||
+      el.closest('#sign-row') ||
+      el.closest('.panel') ||
+      el.closest('#dialog') ||
+      el.closest('.screen')
+    );
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (!G.started || deviceMode !== 'mobile') return;
+    for (const t of e.changedTouches) {
+      if (tid !== null) continue; // already tracking a look touch
+      if (isJoyOrUI(t)) continue; // skip joystick / buttons
+      tid = t.identifier; lx = t.clientX; ly = t.clientY;
+      break;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (tid === null) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier !== tid) continue;
+      yaw   -= (t.clientX - lx) * LOOK_SENSE;
+      pitch -= (t.clientY - ly) * LOOK_SENSE;
+      pitch  = Math.max(-1.1, Math.min(1.1, pitch));
+      lx = t.clientX; ly = t.clientY;
+      break;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === tid) { tid = null; break; }
+    }
+  });
+})();
+
+function mobileInteract(e){e.preventDefault();ensureAudio();if(G.inDialog)closeDialog();else if(!G.inMinigame&&!G.inTransport)doInteract(0);}
+function mobileJump(e){e.preventDefault();doJump(G.players[0]);}
+
+// ═══════════════════════════════════════════════
+//  NPC SPAWNING
+// ═══════════════════════════════════════════════
+function spawnCountryNPCs(role){
+  clearNPCLabels();
+  const sets={
+    citizen:[
+      [0,-10,'police','Officer Chen'],[12,5,'doctor','Dr. Martinez'],[5,13,'citizen','Alex'],
+      [-7,5,'citizen','Maria'],[-12,-5,'police','Officer Kim'],[8,-16,'citizen','Jordan'],
+      [-7,-7,'robber','Bandit'],
+      [-20,20,'firefighter','Firefighter Lopez'],[-17,19,'firefighter','Firefighter Park'],
+    ],
+    police:[
+      [-5,9,'citizen','Jamie'],[8,-5,'citizen','Sam'],[15,15,'doctor','Dr. Rivera'],
+      [6,-12,'citizen','Taylor'],[-10,4,'citizen','Casey'],[-15,8,'police','Officer Nguyen'],
+      [-8,2,'robber','Thief'],
+      [-20,20,'firefighter','Firefighter Lopez'],[-17,19,'firefighter','Firefighter Park'],
+    ],
+    doctor:[
+      [-8,-8,'citizen','Patient Lee'],[5,5,'citizen','Patient Kim'],[-11,9,'police','Officer Patel'],
+      [10,4,'citizen','Patient Kowalski'],[-5,-12,'citizen','Patient Diaz'],[7,14,'police','Officer Adams'],
+      [10,-7,'robber','Mugger'],
+      [-20,20,'firefighter','Firefighter Lopez'],[-17,19,'firefighter','Firefighter Park'],
+    ],
+    firefighter:[
+      [0,-10,'police','Officer Chen'],[12,5,'doctor','Dr. Martinez'],[5,13,'citizen','Alex'],
+      [-7,5,'citizen','Maria'],[-12,-5,'police','Officer Kim'],[8,-16,'citizen','Jordan'],
+      [-7,-7,'robber','Bandit'],
+      [-17,19,'firefighter','Firefighter Park'],[-14,21,'firefighter','Firefighter Santos'],
+    ],
+  };
+  (sets[role]||sets.citizen).forEach(([x,z,r,n])=>{ spawnNPC(x,z,r,n); createNPCLabel(G.npcs[G.npcs.length-1]); });
+}
+
+// ═══════════════════════════════════════════════
+//  EMERGENCY EVENTS
+// ═══════════════════════════════════════════════
+function startEmergencyEvents(){
+  function scheduleNext(){
+    const delay=40000+Math.random()*50000; // 40-90 sec
+    setTimeout(()=>{
+      if(!G.started||!G.players.length) return scheduleNext();
+      const police=G.players.find(p=>p.role==='police')||G.players[0];
+      if(police&&police.tasks.find(t=>t.id==='respond_emergency'&&!t.done)){
+        const victims=G.npcs.filter(n=>n.role==='citizen');
+        if(victims.length){
+          const v=victims[Math.floor(Math.random()*victims.length)];
+          v.emergency=true;
+          if(v.labelEl){ const ico=v.labelEl.querySelector('.nl-icon'); if(ico) ico.textContent='🆘'; }
+          flashBorder('#FF4444'); floatIcon('🆘','50%','30%');
+          if(canHear()){ ensureAudio(); playTone(880,.15,'square',.06); setTimeout(()=>playTone(660,.15,'square',.06),200); }
+          // Auto-clear after 2 min
+          setTimeout(()=>{
+            if(!v.emergency) return;
+            v.emergency=false;
+            if(v.labelEl){ const ico=v.labelEl.querySelector('.nl-icon'); if(ico) ico.textContent='🧑'; }
+          },120000);
+        }
+      }
+      scheduleNext();
+    }, delay);
+  }
+  scheduleNext();
+}
+
+// ═══════════════════════════════════════════════
+//  START GAME
+// ═══════════════════════════════════════════════
+function startGame(role){
+  G.players.length=0; G.npcs.forEach(n=>scene.remove(n.mesh)); G.npcs.length=0;
+  G.fires.forEach(f=>{if(f.mesh.parent)f.mesh.parent.remove(f.mesh);if(f.el&&f.el.parentNode)f.el.parentNode.removeChild(f.el);}); G.fires.length=0;
+  G.inDialog=false; G.inMinigame=false; G.inTransport=false; G.gameOver=false;
+  G.nearTarget=null; G.signsUsed=0; G.lastPoliceCall=0; pendingAudiogram=null;
+  currentCountry='usa'; yaw=0; pitch=0;
+  document.getElementById('gameover-overlay').style.display='none';
+  document.getElementById('damage-flash').style.background='rgba(255,0,0,0)';
+
+  buildWorld('usa');
+  spawnCountryNPCs(role);
+  spawnPlayer(role);
+
+  document.getElementById('menu-screen').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+
+  if(deviceMode==='mobile'){
+    document.getElementById('mobile-controls').style.display='block';
+    document.getElementById('controls-hint').style.display='none';
+    document.getElementById('lock-overlay').classList.remove('show');
+    document.getElementById('crosshair').style.display='block';
+  } else {
+    document.getElementById('controls-hint').style.display='block';
+    document.getElementById('controls-hint').textContent='WASD move  •  Mouse look  •  E interact  •  Q signs  •  F call police  •  Space jump  •  ESC pause';
+    document.getElementById('lock-overlay').classList.add('show');
+  }
+
+  const labels={citizen:'🧑 Deaf Citizen',police:'👮 Deaf Police Officer',doctor:'🩺 Audiologist (can hear)',firefighter:'🚒 Deaf Firefighter'};
+  const colors ={citizen:'#FF8C00',police:'#4169E1',doctor:'#32CD32',firefighter:'#DD5500'};
+  const badge=document.getElementById('role-badge');
+  badge.textContent=labels[role]; badge.style.borderColor=colors[role];
+
+  initSoundBars();
+  updateTaskUI(); updateHearingStatus(); updateLivesDisplay();
+  document.getElementById('lives-display').style.display='block';
+  document.getElementById('call-police-btn').style.display='block';
+  G.started=true; startAmbientEvents(); startEmergencyEvents(); startFireEvents();
+
+  if(role==='doctor'){
+    ensureAudio();
+    setTimeout(()=>{ playTone(440,.5,'triangle',.06); playTone(660,.5,'triangle',.04); },800);
+    setTimeout(()=>startCountryAmbient('usa'), 1200);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  MINIMAP
+// ═══════════════════════════════════════════════
+const BUILDING_COLORS_MM = {
+  clinic:'#2255BB', police:'#445566', community:'#336633',
+  airport:'#888888', train:'#774411', taxi:'#FFAA00', homes:'#8B4513'
+};
+const MM_ZONE_COLORS = {
+  clinic:'#4477dd', police:'#667799', community:'#4a9955',
+  airport:'#aaaaaa', train:'#aa6622', taxi:'#ffcc33',
+  library:'#8B6914', pharmacy:'#DD4466', homes:'#8B4513'
+};
+const MM_SCALE = 1.7; // px per world unit
+const MM_R = 75;      // radius of minimap canvas (150/2)
+
+function drawMinimap() {
+  if (!G.players.length) return;
+  const c = document.getElementById('minimap');
+  const ctx = c.getContext('2d');
+  const px = G.players[0].mesh.position.x;
+  const pz = G.players[0].mesh.position.z;
+
+  ctx.clearRect(0,0,150,150);
+
+  // Clip to circle
+  ctx.save();
+  ctx.beginPath(); ctx.arc(MM_R,MM_R,MM_R,0,Math.PI*2); ctx.clip();
+
+  // Background
+  const C = COUNTRIES[currentCountry];
+  ctx.fillStyle = '#' + C.ground.toString(16).padStart(6,'0');
+  ctx.fillRect(0,0,150,150);
+
+  // Translate so player is always at center
+  ctx.translate(MM_R - px*MM_SCALE, MM_R - pz*MM_SCALE);
+
+  // Roads
+  ctx.fillStyle = '#555';
+  ctx.fillRect(-40*MM_SCALE, -3.5*MM_SCALE, 80*MM_SCALE, 7*MM_SCALE); // E-W
+  ctx.fillRect(-3.5*MM_SCALE, -40*MM_SCALE, 7*MM_SCALE, 80*MM_SCALE); // N-S
+
+  // Buildings
+  G.buildings.forEach((b,i) => {
+    const zone = G.zones[i - (G.buildings.length - G.zones.length)];
+    ctx.fillStyle = zone ? (MM_ZONE_COLORS[zone.id] || '#888') : '#666';
+    ctx.fillRect((b.x-b.hw)*MM_SCALE, (b.z-b.hd)*MM_SCALE, b.hw*2*MM_SCALE, b.hd*2*MM_SCALE);
+  });
+
+  // Zone labels (tiny icons)
+  G.zones.forEach(z => {
+    const icons = {clinic:'🏥',police:'🚔',community:'🏛',airport:'✈️',train:'🚂',taxi:'🚕',library:'📚',pharmacy:'💊',homes:'🏠'};
+    const ico = icons[z.id];
+    if (ico) {
+      ctx.font = `${Math.max(8, 6*MM_SCALE)}px serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(ico, z.x*MM_SCALE, z.z*MM_SCALE);
+    }
+  });
+
+  // NPCs
+  G.npcs.forEach(npc => {
+    const nc = {citizen:'#FFAA44',police:'#4477FF',doctor:'#88FF88',robber:'#FF3333'};
+    ctx.fillStyle = nc[npc.role] || '#fff';
+    ctx.beginPath();
+    ctx.arc(npc.mesh.position.x*MM_SCALE, npc.mesh.position.z*MM_SCALE, 2.5, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // Cars & Taxis
+  G.cars.forEach(car => {
+    ctx.fillStyle = car.isTaxi ? '#FFD700' : '#FF8800';
+    ctx.save();
+    ctx.translate(car.mesh.position.x*MM_SCALE, car.mesh.position.z*MM_SCALE);
+    ctx.rotate(-car.mesh.rotation.y);
+    ctx.fillRect(-1.5, -2.5, 3, 5);
+    ctx.restore();
+  });
+
+  ctx.restore(); // end clip-translate
+
+  // Player arrow (always at center)
+  ctx.save();
+  ctx.translate(MM_R, MM_R);
+  ctx.rotate(yaw);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(0,-7); ctx.lineTo(4,4); ctx.lineTo(0,2); ctx.lineTo(-4,4); ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Border ring
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(MM_R,MM_R,MM_R-1,0,Math.PI*2); ctx.stroke();
+
+  // Compass: update N indicator based on yaw
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  const idx  = Math.round(((yaw % (Math.PI*2)) + Math.PI*2) / (Math.PI/4)) % 8;
+  document.getElementById('compass').textContent = dirs[idx];
+}
+
+// ═══════════════════════════════════════════════
+//  NPC NAME LABELS
+// ═══════════════════════════════════════════════
+const npcLabelPool = [];
+
+function createNPCLabel(npc) {
+  const d = document.createElement('div');
+  d.className = 'npc-label';
+  const icon = {citizen:'🧑',police:'👮',doctor:'🩺',robber:'🦹'}[npc.role]||'👤';
+  d.innerHTML = `<span class="nl-icon">${icon}</span><div class="nl-name">${npc.name}</div>`;
+  d.style.display = 'none';
+  document.getElementById('app').appendChild(d);
+  npc.labelEl = d;
+  npcLabelPool.push(d);
+}
+
+function updateNPCLabels() {
+  if (!G.started) return;
+  const tmp = new THREE.Vector3();
+  G.npcs.forEach(npc => {
+    if (!npc.labelEl) return;
+    // Project head position to screen
+    tmp.set(npc.mesh.position.x, npc.mesh.position.y + 2.4, npc.mesh.position.z);
+    tmp.project(camera);
+    // Check if in front of camera and within screen
+    if (tmp.z > 1 || tmp.z < -1) { npc.labelEl.style.display='none'; return; }
+    const sx = (tmp.x + 1) / 2 * innerWidth;
+    const sy = (-tmp.y + 1) / 2 * innerHeight;
+    if (sx < -60 || sx > innerWidth+60 || sy < 0 || sy > innerHeight) { npc.labelEl.style.display='none'; return; }
+    // Fade by distance
+    const dist = d2(G.players[0].mesh.position, npc.mesh.position);
+    if (dist > 20) { npc.labelEl.style.display='none'; return; }
+    const opacity = Math.max(0, Math.min(1, (20-dist)/10));
+    npc.labelEl.style.display = 'block';
+    npc.labelEl.style.left = sx + 'px';
+    npc.labelEl.style.top  = sy + 'px';
+    npc.labelEl.style.opacity = opacity;
+  });
+}
+
+function clearNPCLabels() {
+  npcLabelPool.forEach(d => d.remove());
+  npcLabelPool.length = 0;
+  G.npcs.forEach(n => n.labelEl = null);
+}
+
+// Patch spawnNPC to auto-create label
+const _origSpawnNPC = spawnNPC;
+// (We'll call createNPCLabel inside spawnCountryNPCs override below)
+
+// ═══════════════════════════════════════════════
+//  SOUND METER (visible when player can hear)
+// ═══════════════════════════════════════════════
+let soundBarsEl = null;
+function initSoundBars() {
+  soundBarsEl = document.getElementById('sound-bars');
+  soundBarsEl.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const b = document.createElement('div');
+    b.className = 'bar';
+    b.style.height = '4px';
+    soundBarsEl.appendChild(b);
+  }
+}
+
+let soundPhase = 0;
+function animateSoundMeter() {
+  if (!soundBarsEl || !canHear()) return;
+  soundPhase += 0.18;
+  const bars = soundBarsEl.querySelectorAll('.bar');
+  bars.forEach((b, i) => {
+    const h = 3 + Math.abs(Math.sin(soundPhase + i * 0.8)) * 13;
+    b.style.height = h + 'px';
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  NPC FACING PLAYER WHEN NEARBY
+// ═══════════════════════════════════════════════
+function updateNPCFacing() {
+  if (!G.players.length) return;
+  const pp = G.players[0].mesh.position;
+  const isPolice = G.players[0].role === 'police';
+  G.npcs.forEach(npc => {
+    const dist = d2(pp, npc.mesh.position);
+    if (npc.role === 'robber') {
+      if (isPolice && dist < 15) {
+        // Flee — face away from police
+        const fx = npc.mesh.position.x - pp.x, fz = npc.mesh.position.z - pp.z;
+        npc.mesh.rotation.y = Math.atan2(fx, fz);
+      } else if (!isPolice && dist < 20) {
+        // Chase — face toward player
+        npc.mesh.rotation.y = Math.atan2(pp.x - npc.mesh.position.x, pp.z - npc.mesh.position.z);
+      }
+    } else if (dist < IR + 1) {
+      const dx = pp.x - npc.mesh.position.x, dz = pp.z - npc.mesh.position.z;
+      npc.mesh.rotation.y = Math.atan2(dx, dz);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  AMBIENT COUNTRY AUDIO
+// ═══════════════════════════════════════════════
+let ambientInterval = null;
+const countryAmbient = {
+  usa:       [220, 330, 165],
+  japan:     [440, 550, 330],
+  uk:        [196, 294, 392],
+  australia: [261, 392, 523],
+  brazil:    [330, 415, 494],
+  canada:    [262, 330, 392],
+};
+function startCountryAmbient(cid) {
+  if (ambientInterval) clearInterval(ambientInterval);
+  if (!canHear()) return;
+  const freqs = countryAmbient[cid] || countryAmbient.usa;
+  ambientInterval = setInterval(() => {
+    if (!canHear() || !G.started) return;
+    ensureAudio();
+    const f = freqs[Math.floor(Math.random()*freqs.length)];
+    playTone(f, 0.8, 'sine', 0.025);
+  }, 4500);
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════
+function loop(){
+  requestAnimationFrame(loop);
+  if(G.started){
+    G.players.forEach(p=>movePlayer(p));
+    G.npcs.forEach(n=>moveNPC(n));
+    moveCars();
+    updateFires();
+    checkDamage();
+    checkProximity();
+    updateCamera();
+    updateNPCLabels();
+    updateNPCFacing();
+    drawMinimap();
+    animateSoundMeter();
+  }
+  renderer.render(scene,camera);
+}
+loop();
+</script>
+</body>
+</html>
