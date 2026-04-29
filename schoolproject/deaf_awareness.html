@@ -105,7 +105,7 @@ h1.title{color:#e94560;font-size:clamp(1.4rem,5vw,2.6rem);text-shadow:0 0 20px #
 .joy-base{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.3);position:absolute}
 .joy-handle{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);border:3px solid rgba(255,255,255,.9);position:absolute;top:33px;left:33px}
 /* Action buttons — right column: interact (top/above), jump (bottom) */
-#mobile-btns{position:absolute;bottom:30px;right:16px;display:flex;flex-direction:column-reverse;gap:10px;pointer-events:all}
+#mobile-btns{position:absolute;bottom:30px;right:16px;display:flex;flex-direction:column;gap:10px;pointer-events:all;align-items:center}
 .m-btn{width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;transition:opacity .25s,transform .1s}
 .m-btn:active{transform:scale(.88)}
 #btn-act{background:rgba(46,204,113,.7);width:68px;height:68px;font-size:1.5rem}
@@ -282,8 +282,8 @@ h1.title{color:#e94560;font-size:clamp(1.4rem,5vw,2.6rem);text-shadow:0 0 20px #
     </div>
     <!-- Action buttons: column-reverse so interact renders above jump -->
     <div id="mobile-btns">
-      <div class="m-btn" style="background:rgba(52,152,219,.7)" ontouchstart="mobileJump(event)">⬆</div>
       <div id="btn-act" class="m-btn out-of-range" ontouchstart="mobileInteract(event)">💬</div>
+      <div class="m-btn" style="background:rgba(52,152,219,.7)" ontouchstart="mobileJump(event)">⬆</div>
     </div>
   </div>
 </div>
@@ -584,7 +584,10 @@ function moveCars(){
     const f=car.path[car.pathIdx],t=car.path[car.pathIdx+1];
     const dx=t[0]-f[0],dz=t[1]-f[1],sl=Math.hypot(dx,dz);
     const r=sl>0?car.progress/sl:0;
-    car.mesh.position.set(f[0]+dx*r,0,f[1]+dz*r);
+    const nx=f[0]+dx*r, nz=f[1]+dz*r;
+    const onGrass=G.zones.some(z=>z.isSafe&&Math.abs(nx-z.x)<z.hw+.5&&Math.abs(nz-z.z)<z.hd+.5);
+    if(onGrass){ car.progress+=car.speed*8; return; } // skip over grass patch
+    car.mesh.position.set(nx,0,nz);
     car.mesh.rotation.y=Math.atan2(-dx,-dz);
   });
 }
